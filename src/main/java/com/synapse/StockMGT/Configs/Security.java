@@ -1,0 +1,50 @@
+package com.synapse.StockMGT.Configs;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+@Configuration
+@EnableWebSecurity
+public class Security {
+
+    private static final Logger logger = LoggerFactory.getLogger("AUDIT");
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(req -> req
+                        .requestMatchers(
+                               // new AntPathRequestMatcher("/**"),
+                                new AntPathRequestMatcher("/resources/images/USCOM.png"),
+                                new AntPathRequestMatcher("/app-assets/**"),
+                                new AntPathRequestMatcher("/JS/**"),
+                                new AntPathRequestMatcher("/node_modules/**"),
+                                new AntPathRequestMatcher("/loginImpl/**")).permitAll()
+                        .anyRequest().authenticated()
+                ).formLogin(form->form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/addCategory", true)
+                        .permitAll())
+                .httpBasic(Customizer.withDefaults())
+                .build();
+    }
+
+    @EventListener
+    public void handleSuccess(AuthenticationSuccessEvent event) {
+        logger.info(event.getAuthentication().getPrincipal().toString() + " successfully logged in");
+    }
+}
