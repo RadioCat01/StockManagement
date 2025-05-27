@@ -9,6 +9,8 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
         transferTo:null,
         reason:null
     }
+    $scope.itemHistory=[];
+    $scope.searchSerialNumber=null;
 
     const inventoryTable = $('#inventoryTable').DataTable({
         paging: true,
@@ -102,7 +104,50 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
             });
         }
     });
+
+    const historyTable = $('#historyTable').DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        destroy: true,
+        dom: 'Bfrtip', columnDefs: [
+            { width: '15%', targets: 0 },
+            { width: '20%', targets: 1 },
+            { width: '20%', targets: 2 },
+            { width: '25%', targets: 3 },
+            { width: '20%', targets: 4 }
+        ],
+        autoWidth: false,
+
+        buttons: [
+            {
+                extend: 'excel',
+                text: '<i class="la la-file-excel-o"></i>',
+                titleAttr: 'Export to Excel'
+            },
+            {
+                extend: 'print',
+                text: '<i class="la la-print"></i>',
+                titleAttr: 'Print'
+            }
+        ],
+        initComplete: function () {
+            this.api().columns().every(function () {
+                var column = this;
+                var title = $(column.footer()).text();
+
+                $(column.footer()).html('<input type="text" placeholder="' + title + '"/>');
+
+                $('input', column.footer()).on('keyup change clear', function () {
+                    if (column.search() !== this.value) {
+                        column.search(this.value).draw();
+                    }
+                });
+            });
+        }
+    });
     $('.buttons-print, .buttons-excel').addClass('btn btn-primary mr-1');
+
 
     $scope.transfer=function (){
         if($scope.selectedItems.length > 0 && $scope.toTransfer.transferTo != null && $scope.toTransfer.reason != null){
@@ -127,6 +172,19 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
         $scope.selectedItems = [];
     }
 
+    $scope.getItemHistory=function (serial){
+        $http.get(APP_CONFIG.apiBase + `/inventoryCont/itemHistory`,{
+            params:{serial:serial}
+        })
+            .then(function (res){
+                $scope.itemHistory=res.data;
+                toastr.success('Item History Fetched!', 'Success');
+                drawHistoryTable();
+            },function (err){
+                toastr.warning('Error Fetching ItemHistory!', 'Error');
+            })
+    }
+
     function fetchAndRenderInventory(filterStoreId) {
         $http.get(APP_CONFIG.apiBase + `/inventoryCont/inv`)
             .then(function (res) {
@@ -148,6 +206,7 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
                         inv.productSerial || '',
                         inv.grnDate || '',
                         inv.lastUpdate || '',
+                        inv.stockType || '',
                     ]);
                 });
                 inventoryTable.draw();
@@ -195,6 +254,22 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
             });
         }
         transferTable.draw();
+    }
+
+    function drawHistoryTable(){
+        historyTable.clear();
+        if(Array.isArray($scope.itemHistory)){
+            $scope.itemHistory.forEach(function (ht){
+                historyTable.row.add([
+                    ht.brand || '',
+                    ht.itemCode || '',
+                    ht.serialNo || '',
+                    ht.currentState || '',
+                    ht.lastUpdate || ''
+                ]);
+            });
+        }
+        historyTable.draw();
     }
 
     getStores();

@@ -1,12 +1,10 @@
 package com.synapse.StockMGT.Services;
 
 import com.synapse.StockMGT.DTOs.InventoryDTO;
+import com.synapse.StockMGT.DTOs.ItemHistoryResDTO;
 import com.synapse.StockMGT.DTOs.TransferReqDTO;
 import com.synapse.StockMGT.Models.*;
-import com.synapse.StockMGT.Repos.CategoryRepo;
-import com.synapse.StockMGT.Repos.ItemRepo;
-import com.synapse.StockMGT.Repos.StoreRepo;
-import com.synapse.StockMGT.Repos.TransferRepo;
+import com.synapse.StockMGT.Repos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +13,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +23,7 @@ public class InventoryService {
     private final TransferRepo transferRepo;
     private final ItemRepo itemRepo;
     private final StoreRepo storeRepo;
+    private final ItemHistoryRepo itemHistoryRepo;
     private static final Random random = new Random();
 
     public List<InventoryDTO> getInventory() {
@@ -46,6 +46,7 @@ public class InventoryService {
                                         .grnDate(grn.getGrnDate())
                                         .lastUpdate(item.getLastUpdate())
                                         .currentPosition(item.getCurrentPosition())
+                                        .stockType(item.getStockType())
                                         .build());
                     }
                 }
@@ -71,6 +72,14 @@ public class InventoryService {
                 Item item = itemRepo.findById(inventoryDTO.getItemId())
                         .orElseThrow(() -> new RuntimeException("Item not found"));
                 prevStore = item.getStore();
+                itemHistoryRepo.save(ItemHistory.builder()
+                                .brand(inventoryDTO.getBrand())
+                                .itemCode(inventoryDTO.getItemCode())
+                                .serialNo(item.getSerialNumber())
+                                .currentState("Transferred to: " + store.getSubCompany().getSubCompanyName())
+                                .lastUpdate(LocalDate.now())
+                                .build());
+
                 item.setStore(store);
                 description = inventoryDTO.getDescription();
                 item.setLastUpdate(LocalDate.now());
@@ -95,5 +104,15 @@ public class InventoryService {
     public static String generateTransferNumber() {
         int number = random.nextInt(1_000_000);
         return String.format("%06d", number);
+    }
+
+    public List<ItemHistoryResDTO> getItemHistory(String serialNumber) {
+        return itemHistoryRepo.findBySerialNo(serialNumber).stream().map(i -> ItemHistoryResDTO.builder()
+                .brand(i.getBrand())
+                .itemCode(i.getItemCode())
+                .serialNo(i.getSerialNo())
+                .lastUpdate(i.getLastUpdate())
+                .currentState(i.getCurrentState())
+                .build()).toList();
     }
 }

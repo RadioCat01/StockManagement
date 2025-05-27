@@ -26,6 +26,6 @@ public class ItemDTO {
     private String grnDate;
     private int store;
     private List<String> serialNumbers;
-
+    private String stockType;
     private List<CustomFields_grn> customFields;
 }

@@ -41,4 +41,6 @@ public class Item extends TenantAwareSupperClass{
 
     private LocalDate lastUpdate;
     private String currentPosition;
+
+    private String stockType;
 }

@@ -30,7 +30,7 @@ angular.module('Stock').controller('ItemsManagement', function($scope, $http, $t
         supplierInvoiceNumber:'',
         grnDate:null,
         store:null,
-
+        stockType:"Goods",
         serialNumbers:[],
         customFields:[]
     }

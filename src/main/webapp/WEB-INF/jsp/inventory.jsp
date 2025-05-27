@@ -126,6 +126,7 @@
                                         <th>Product Serial</th>
                                         <th>GRN Date</th>
                                         <th>Last Update</th>
+                                        <th>Stock Type</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -138,6 +139,7 @@
                                         <th>Product Serial</th>
                                         <th>GRN Date</th>
                                         <th>Last Update</th>
+                                        <th>Stock Type</th>
                                     </tr>
                                     </tfoot>
                                 </table>
@@ -176,6 +178,45 @@
                                     <th>From</th>
                                     <th>To</th>
                                     <th>Reason</th>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Item History</h4>
+                            <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                        </div>
+                        <div class="card-body card-dashboard">
+                            <div class="row mb-2">
+                                <input type="text" class="form-control col-md-2 ml-2 mr-1" ng-model="searchSerialNumber" placeholder="Enter Serial Number" />
+                                <button class="btn btn-outline-primary" ng-click="getItemHistory(searchSerialNumber)">Search</button>
+                            </div>
+                            <table id="historyTable" class="table table-striped table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Brand</th>
+                                    <th>Item Code</th>
+                                    <th>Serial Number</th>
+                                    <th>Log</th>
+                                    <th>Date</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <th>Brand</th>
+                                    <th>Item Code</th>
+                                    <th>Serial Number</th>
+                                    <th>Log</th>
+                                    <th>Date</th>
                                 </tr>
                                 </tfoot>
                             </table>

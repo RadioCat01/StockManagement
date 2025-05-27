@@ -29,6 +29,12 @@ public class InventoryController {
         return ResponseEntity.ok(inventoryService.getTransfers());
     }
 
+    @GetMapping("/itemHistory")
+    public ResponseEntity<?> itemHistory(@RequestParam String serial) {
+        controllerLogger.info("Inventory Controller Called.");
+        return ResponseEntity.ok(inventoryService.getItemHistory(serial));
+    }
+
     @PostMapping("/transfer")
     public ResponseEntity<?> transfer(@RequestBody TransferReqDTO transferReqDTO) {
         controllerLogger.info("Inventory Controller Called.");

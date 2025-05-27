@@ -28,6 +28,7 @@ public class SalesService {
     private final ItemRepo itemRepo;
     private final InvoiceRepo invoiceRepo;
     private final ServiceRepo serviceRepo;
+    private final ItemHistoryRepo itemHistoryRepo;
 
     public List<SaleItemDTO> getItems() {
         List<SaleItemDTO> salesItems = new ArrayList<>();
@@ -62,8 +63,9 @@ public class SalesService {
         double subTotal = 0.0;
 
         Optional<Customers> cus = customerRepo.findByPhone(sale.getCustomerPhone());
-
+        Customers thisCustomer= null;
         if (cus.isPresent()) {
+            thisCustomer = cus.get();
             newSale.setCustomer(cus.get());
         }else {
             Customers newCustomer = Customers.builder()
@@ -71,7 +73,6 @@ public class SalesService {
                     .phone(sale.getCustomerPhone())
                     .address(sale.getCustomerAddress())
                     .build();
-
             if(sale.getCustomFields()!=null){
                 for (CustomFields_customer customer : sale.getCustomFields()){
                     newCustomer.getCustomFields().add(CustomFields_customer.builder()
@@ -83,7 +84,7 @@ public class SalesService {
                             .build());
                 }
             }
-
+            thisCustomer = newCustomer;
             newSale.setCustomer(newCustomer);
         }
 
@@ -100,6 +101,13 @@ public class SalesService {
                                 .supplierGRNId(supplierGRN.getSupplierGRNId())
                                 .build());
                 int itemID = supplierGRN.getItems().get(q).getItemId();
+                itemHistoryRepo.save(ItemHistory.builder()
+                                .brand(supplierGRN.getBrandName())
+                                .itemCode(product.getItemCode())
+                                .serialNo(supplierGRN.getItems().get(q).getSerialNumber())
+                                .currentState("Sold to: "+thisCustomer.getName()+"\n"+thisCustomer.getPhone())
+                                .lastUpdate(LocalDate.now())
+                                .build());
                 itemRepo.deleteByItemId(itemID);
             }
             soldProducts.add(SoldProducts.builder()

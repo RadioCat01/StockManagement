@@ -9,6 +9,7 @@ import com.synapse.StockMGT.Repos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ public class ManagementService {
     private final SubComRepo subComRepo;
     private final SupplierRepo supplierRepo;
     private final SupplierGRNRepo supplierGRNRepo;
+    private final ItemHistoryRepo itemHistoryRepo;
 
     public List<FlatCatDTO> getFlatCat() {
         List<FlatCatDTO> flatCatDTOList = new ArrayList<>();
@@ -139,6 +141,7 @@ public class ManagementService {
         return itemInfoRepo.save(savedItemInfo).getBrand().getBrandName();
     }
 
+    @Transactional
     public String createItem(ItemDTO itemDTO) {
         ItemInfo itemInfo = itemInfoRepo.findByItemCode(itemDTO.getItemCode())
                 .orElseThrow(() -> new RuntimeException("Item not found"));
@@ -161,7 +164,6 @@ public class ManagementService {
         } else {
             date = LocalDate.now();
         }
-
 
         SupplierGRN savingGRN = SupplierGRN.builder()
                 .supplierId(itemDTO.getSupplierId())
@@ -193,54 +195,53 @@ public class ManagementService {
             }
         }
 
-        StringBuilder sb = new StringBuilder();
+        List<String> serials = new ArrayList<>();
+        List<Item> newItems = new ArrayList<>();
+
         if (Boolean.TRUE.equals(itemDTO.getHasSerialNumbers())) {
-            List<Item> newItems = new ArrayList<>();
-            for (String serial : itemDTO.getSerialNumbers()) {
-                sb.append(serial).append("\n");
-                newItems.add(Item.builder()
-                        .serialNumber(serial)
-                        .supplier(supplier)
-                        .cost(itemDTO.getItemCost())
-                        .dealerPrice(itemDTO.getDealerPrice())
-                        .retailPrice(itemDTO.getRetailPrice())
-                        .warranty(itemDTO.getWarranty())
-                        .itemInfo(itemInfo)
-                        .store(store)
-                        .lastUpdate(LocalDate.now())
-                        .currentPosition(store.getSubCompany().getSubCompanyName())
-                        .build());
-            }
-            String allSerials = !sb.isEmpty() ? sb.substring(0, sb.length() - 1) : "";
-            savingGRN.setSerialNumberList(allSerials);
-            savingGRN.setItems(newItems);
+            serials.addAll(itemDTO.getSerialNumbers());
         } else {
             itemDTO.setSerialNumbers(null);
-            List<Item> newItems = new ArrayList<>();
             for (int i = 1; i <= itemDTO.getQuantity(); i++) {
-                String serial = "SN-" + UUID.randomUUID().toString().substring(0, 6);
-                sb.append(serial).append("\n");
-                newItems.add(Item.builder()
-                        .serialNumber(serial)
-                        .supplier(supplier)
-                        .cost(itemDTO.getItemCost())
-                        .dealerPrice(itemDTO.getDealerPrice())
-                        .retailPrice(itemDTO.getRetailPrice())
-                        .itemInfo(itemInfo)
-                        .warranty(itemDTO.getWarranty())
-                        .store(store)
-                        .lastUpdate(LocalDate.now())
-                        .currentPosition(store.getSubCompany().getSubCompanyName())
-                        .build());
+                serials.add("SN-" + UUID.randomUUID().toString().substring(0, 6));
             }
-            String allSerials = !sb.isEmpty() ? sb.substring(0, sb.length() - 1) : "";
-            savingGRN.setSerialNumberList(allSerials);
-            savingGRN.setItems(newItems);
         }
+
+        for (String serial : serials) {
+            Item newItem = Item.builder()
+                    .serialNumber(serial)
+                    .supplier(supplier)
+                    .cost(itemDTO.getItemCost())
+                    .dealerPrice(itemDTO.getDealerPrice())
+                    .retailPrice(itemDTO.getRetailPrice())
+                    .warranty(itemDTO.getWarranty())
+                    .itemInfo(itemInfo)
+                    .store(store)
+                    .lastUpdate(LocalDate.now())
+                    .currentPosition(store.getSubCompany().getSubCompanyName())
+                    .stockType(itemDTO.getStockType())
+                    .build();
+            newItems.add(newItem);
+        }
+            savingGRN.setSerialNumberList(String.join("\n", serials));
+            savingGRN.setItems(newItems);
             SupplierGRN savedGRN = supplierGRNRepo.save(savingGRN);
             brand.getSupplierGRNs().add(savedGRN);
             brandRepo.save(brand);
+            recordItemHistory(newItems,brand,itemInfo);
             return itemDTO.getItemCode();
+    }
+
+    public void recordItemHistory(List<Item> item, Brand brand, ItemInfo itemInfo) {
+        for (Item i : item) {
+            itemHistoryRepo.save(ItemHistory.builder()
+                    .brand(brand.getBrandName())
+                    .itemCode(itemInfo.getItemCode())
+                    .serialNo(i.getSerialNumber())
+                    .currentState("Added to stock: GRN")
+                    .lastUpdate(LocalDate.now())
+                    .build());
+        }
     }
 
     public Supplier saveSupplier(SupplierReqDTO supplierDTO){

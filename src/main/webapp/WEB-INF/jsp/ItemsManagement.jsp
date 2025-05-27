@@ -148,7 +148,7 @@
                                 </div>
                             </div>
 
-                            <!-- Add Brand Modal -->
+                            <!--///////// Add Brand Modal ///////////////-->
                             <div class="modal fade text-left" id="addBrandModal" tabindex="-1" role="dialog"
                                  aria-labelledby="addProductModalLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-lg" role="document">
@@ -248,15 +248,19 @@
                                                         </div>
                                                     </div>
 
-                                                    <div class="form-group">
-                                                        <label for="itemCode">Item Code</label>
-                                                        <div class="position-relative has-icon-left">
-                                                            <input type="text" id="itemCode" class="form-control"
-                                                                   ng-model="brandDTO.itemCode"
-                                                                   placeholder="Enter Item Code" name="itemCode"
-                                                                   required>
-                                                            <div class="form-control-position">
-                                                                <i class="la la-barcode"></i>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label for="itemCode">Item Code</label>
+                                                                <div class="position-relative has-icon-left">
+                                                                    <input type="text" id="itemCode" class="form-control"
+                                                                           ng-model="brandDTO.itemCode"
+                                                                           placeholder="Enter Item Code" name="itemCode"
+                                                                           required>
+                                                                    <div class="form-control-position">
+                                                                        <i class="la la-barcode"></i>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -464,6 +468,23 @@
                                                                         <option value="" disabled>Select an item code</option>
                                                                     </select>
                                                                     <div class="invalid-feedback">Please select an item code.</div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label for="stockType">Stock Type</label>
+                                                                        <div class="position-relative has-icon-left">
+                                                                            <select id="stockType" class="form-control"
+                                                                                    ng-model="itemDTO.stockType"
+                                                                                    ng-init="itemDTO.stockType='Goods'">
+                                                                                <option value="Goods">Goods</option>
+                                                                                <option value="Defective">Defective</option>
+                                                                                <option value="Spare Parts">Spare Parts</option>
+                                                                            </select>
+                                                                            <div class="form-control-position">
+                                                                                <i class="la la-archive"></i>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
 

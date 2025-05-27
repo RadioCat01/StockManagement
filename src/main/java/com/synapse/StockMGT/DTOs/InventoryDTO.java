@@ -18,4 +18,5 @@ public class InventoryDTO {
     private LocalDate grnDate;
     private LocalDate lastUpdate;
     private String currentPosition;
+    private String stockType;
 }
