@@ -15,4 +15,5 @@ public class SaleItemDTO {
     private int quantity;
     private String description;
     private int supplierGRNID;
+    private int storeId;
 }

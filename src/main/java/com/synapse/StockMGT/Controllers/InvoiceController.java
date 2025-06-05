@@ -31,6 +31,12 @@ public class InvoiceController {
         return ResponseEntity.ok(invoiceService.getAllInvoices());
     }
 
+    @GetMapping("/invoiceByNumber")
+    public ResponseEntity<?> getInvoiceByNumber(@RequestParam String number) {
+        invoiceLogger.info("Sales Controller: getInvoiceByNumber");
+        return ResponseEntity.ok(invoiceService.getInvoiceByNumber(number));
+    }
+
     @PostMapping("/updateInvoice")
     public ResponseEntity<?> updateInvoice(@RequestBody InvoiceDTO invoice) {
         Map<String, String> response = new HashMap<>();

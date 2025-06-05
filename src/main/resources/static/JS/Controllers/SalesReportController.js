@@ -50,11 +50,13 @@ angular.module('Stock').controller('SalesReport', function ($scope, $http, $time
             if(Array.isArray(data)){
                 data.forEach(function (r){
                     inventoryTable.row.add([
-                        `<strong>${r.brand}</strong><br><small>${r.description}</small>`,
-                        r.itemCode,
+                        `<strong>${r.itemCode}</strong><br><small>${r.brand}</small><br><small>${r.description}</small>`,
+                        r.serialNumbers,
+                        r.invoiceNumber,
+                        r.poReference,
                         `<strong>${r.customerName}</strong><br><small>${r.customerPhone}<br> ${r.customerAddress}</small>`,
                         new Date(r.soldDate).toLocaleString(),
-                        r.serials.split(',').join('<br>')
+                        `${r.storeName}<br>${r.storeAddress}`
                     ])
                 });
                 inventoryTable.draw();

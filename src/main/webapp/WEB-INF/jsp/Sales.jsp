@@ -62,6 +62,8 @@
                     </li>
                     <li><a class="menu-item" href="${pageContext.request.contextPath}/addCategory">Stock Management</a>
                     </li>
+                    <li><a class="menu-item" href="${pageContext.request.contextPath}/customerJobs">Job Management</a>
+                    </li>
                 </ul>
             </li>
             <li class=" nav-item"><a href="#"><i class="ft-printer"></i><span class="menu-title" data-i18n="">Reporting</span></a>
@@ -100,22 +102,26 @@
                                 <table id="inventoryTable" class="table table-striped table-bordered">
                                     <thead>
                                     <tr>
-                                        <th>Brand</th>
-                                        <th>ItemCode</th>
-                                        <th>Customer</th>
+                                        <th>Sale Info</th>
+                                        <th>Serial Numbers</th>
+                                        <th>Invoice Number</th>
+                                        <th>PO Reference</th>
+                                        <th>Customer Info</th>
                                         <th>Sold Date</th>
-                                        <th>Item Serial</th>
+                                        <th>Store Info</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     </tbody>
                                     <tfoot>
                                     <tr>
-                                        <th>Brand</th>
-                                        <th>ItemCode</th>
-                                        <th>Customer</th>
+                                        <th>Sale Info</th>
+                                        <th>Serial Numbers</th>
+                                        <th>Invoice Number</th>
+                                        <th>PO Reference</th>
+                                        <th>Customer Info</th>
                                         <th>Sold Date</th>
-                                        <th>Serial</th>
+                                        <th>Store Info</th>
                                     </tr>
                                     </tfoot>
                                 </table>

@@ -1,5 +1,6 @@
 package com.synapse.StockMGT.CustomFields;
 
+import com.synapse.StockMGT.Enums.CustomFieldType;
 import com.synapse.StockMGT.Models.TenantAwareSupperClass;
 import lombok.*;
 

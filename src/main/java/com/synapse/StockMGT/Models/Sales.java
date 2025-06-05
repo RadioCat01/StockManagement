@@ -28,6 +28,8 @@ public class Sales extends TenantAwareSupperClass{
     private List<SoldProducts> soldProducts;
 
     private String saleType;
-
     private LocalDate soldDate=LocalDate.now();
+
+    private String poReference;
+    private String invoiceNumber;
 }

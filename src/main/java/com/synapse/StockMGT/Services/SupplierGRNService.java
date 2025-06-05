@@ -13,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +29,9 @@ public class SupplierGRNService {
         List<SupplierGRNDTO> grnDTOList = new ArrayList<>();
 
         if (grnList.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("No GRN records found for supplier ID: " + supplierId);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No supplier found");
+            return ResponseEntity.ok(response);
         }
         for (SupplierGRN grn : grnList) {
             SupplierGRNDTO supplierGRNDTO =SupplierGRNDTO.builder()

@@ -36,12 +36,6 @@ public class UiController {
         return "GRNSummery";
     }
 
-    @GetMapping("/stockRecon")
-    public String stockRecon() {
-        logger.info("stockRecon Page Called.");
-        return "StockRecon";
-    }
-
     @GetMapping("/pos")
     public String pos() {
         logger.info("pos Page Called.");
@@ -66,10 +60,10 @@ public class UiController {
         return "Invoice";
     }
 
-    @GetMapping("/quotation")
-    public String quotation() {
-        logger.info("quotation Page Called.");
-        return "Quotation";
+    @GetMapping("/customerJobs")
+    public String customerJobs() {
+        logger.info("customerJobs Page Called.");
+        return "Job";
     }
 
     @GetMapping("/invoiceTemp")

@@ -3,6 +3,7 @@ package com.synapse.StockMGT.DTOs;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -14,6 +15,10 @@ public class SalesReportDTO {
     private String customerName;
     private String customerPhone;
     private String customerAddress;
-    private String soldDate;
-    private String serials;
+    private LocalDate soldDate;
+    private String serialNumbers;
+    private String storeName;
+    private String storeAddress;
+    private String poReference;
+    private String invoiceNumber;
 }

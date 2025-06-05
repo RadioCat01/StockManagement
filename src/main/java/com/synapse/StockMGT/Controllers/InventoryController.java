@@ -1,5 +1,6 @@
 package com.synapse.StockMGT.Controllers;
 
+import com.synapse.StockMGT.DTOs.BulkTransferDTO;
 import com.synapse.StockMGT.DTOs.InventoryDTO;
 import com.synapse.StockMGT.DTOs.TransferReqDTO;
 import com.synapse.StockMGT.Services.InventoryService;
@@ -7,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -40,6 +43,14 @@ public class InventoryController {
         controllerLogger.info("Inventory Controller Called.");
         Map<String, String> response = new HashMap<>();
         response.put("Message",inventoryService.transferStock(transferReqDTO));
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("transferBulk")
+    public ResponseEntity<?> transferBulk(@RequestBody BulkTransferDTO bulkTransferDTO) {
+        controllerLogger.info("Inventory Controller Called.");
+        Map<String, String> response = new HashMap<>();
+        response.put("Message",inventoryService.bulkTransfer(bulkTransferDTO));
         return ResponseEntity.ok(response);
     }
 }

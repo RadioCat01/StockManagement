@@ -11,10 +11,8 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -228,17 +226,17 @@ public class ManagementService {
             SupplierGRN savedGRN = supplierGRNRepo.save(savingGRN);
             brand.getSupplierGRNs().add(savedGRN);
             brandRepo.save(brand);
-            recordItemHistory(newItems,brand,itemInfo);
+            recordItemHistory(newItems,brand,itemInfo, store);
             return itemDTO.getItemCode();
     }
 
-    public void recordItemHistory(List<Item> item, Brand brand, ItemInfo itemInfo) {
+    public void recordItemHistory(List<Item> item, Brand brand, ItemInfo itemInfo, Store store) {
         for (Item i : item) {
             itemHistoryRepo.save(ItemHistory.builder()
                     .brand(brand.getBrandName())
                     .itemCode(itemInfo.getItemCode())
                     .serialNo(i.getSerialNumber())
-                    .currentState("Added to stock: GRN")
+                    .currentState("Added to stock: "+store.getSubCompany().getSubCompanyName()+" - "+store.getStoreAddress())
                     .lastUpdate(LocalDate.now())
                     .build());
         }
@@ -269,15 +267,26 @@ public class ManagementService {
 
     public List<SupplierResDTO> getSupplierRES() {
         return supplierRepo.findAll().stream()
-                .map(s->SupplierResDTO.builder()
-                        .supplierId(s.getSupplierId())
-                        .name(s.getName())
-                        .address(s.getAddress())
-                        .contactName(s.getContactName())
-                        .contactNumber(s.getContactNumber())
-                        .paymentTerms(s.getPaymentTerms())
-                        .period(s.getPeriod())
-                        .build())
+                .map(s -> {
+                    Map<String, String> customFieldMap = s.getCustomFields().stream()
+                            .collect(Collectors.toMap(
+                                    f -> f.getFieldName().toLowerCase(),
+                                    CustomFields_supplier::getFieldValue,
+                                    (existing, replacement) -> existing
+                            ));
+
+                    return SupplierResDTO.builder()
+                            .supplierId(s.getSupplierId())
+                            .name(s.getName())
+                            .address(s.getAddress())
+                            .contactName(s.getContactName())
+                            .contactNumber(s.getContactNumber())
+                            .paymentTerms(s.getPaymentTerms())
+                            .period(s.getPeriod())
+                            .vatNumber(customFieldMap.getOrDefault("vat number", null))
+                            .bankDetails(customFieldMap.getOrDefault("bank details", null))
+                            .build();
+                })
                 .toList();
     }
 

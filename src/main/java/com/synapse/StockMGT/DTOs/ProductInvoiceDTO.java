@@ -3,6 +3,7 @@ package com.synapse.StockMGT.DTOs;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -14,4 +15,5 @@ public class ProductInvoiceDTO {
     private Double unitPrice;
     private int quantity;
     private Double total;
+    private LocalDate invoiceDate;
 }

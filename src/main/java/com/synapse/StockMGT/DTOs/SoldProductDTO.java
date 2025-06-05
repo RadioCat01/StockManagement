@@ -9,4 +9,5 @@ public class SoldProductDTO {
     private String itemCode;
     private int supplierGRNID;
     private int selectedQuantity;
+    private int storeId;
 }

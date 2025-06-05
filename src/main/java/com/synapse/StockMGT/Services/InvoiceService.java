@@ -127,4 +127,32 @@ public class InvoiceService {
 
        return invoiceRepo.save(existingInvoice).getInvoiceNumber();
     }
+
+    public InvoiceDTO getInvoiceByNumber(String number) {
+        return invoiceRepo.findByInvoiceNumber(number).map(invoice -> {
+            List<SoldProducts> products = invoice.getSales().getSoldProducts();
+            List<ProductInvoiceDTO> items = new ArrayList<>();
+            for(SoldProducts product:products) {
+                for(SoldItem soldItem : product.getSoldItems()) {
+                    SupplierGRN grn = supplierGRNRepo.findById(soldItem.getSupplierGRNId())
+                                    .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                    items.add(ProductInvoiceDTO.builder()
+                                    .productDescription(grn.getProductDescription())
+                                    .serials(soldItem.getSerialNumber())
+                                    .warranty(grn.getWarranty())
+                                    .invoiceDate(invoice.getInvoiceDate())
+                                    .build());
+                }
+            }
+            return InvoiceDTO.builder()
+                    .customerName(invoice.getCustomerName())
+                    .customerPhone(invoice.getCustomerPhone())
+                    .invoiceNumber(invoice.getInvoiceNumber())
+                    .invoiceDate(invoice.getInvoiceDate())
+                    .invoiceId(invoice.getInvoiceId())
+                    .products(items)
+                    .build();
+                })
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+    }
 }

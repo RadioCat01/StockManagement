@@ -20,7 +20,7 @@ angular.module('Stock').controller('POSController', function($scope, $http, $tim
         paymentTerms:'Cash',
         poReference:'',
         serviceCharges:[],
-        customFields:[]
+        customFields:[],
     };
     $scope.serviceChargeType=['Repair','Cleaning','Replacements']
     $scope.paymentOptions = ['Cash', 'Card', 'Bank Transfer', 'Online Payment','Pending'];
@@ -70,7 +70,8 @@ angular.module('Stock').controller('POSController', function($scope, $http, $tim
                 description:product.description,
                 retailPrice:product.retailPrice,
                 dealerPrice:product.dealerPrice,
-                availableQuantity:product.quantity
+                availableQuantity:product.quantity,
+                storeId:product.storeId
             });
             calculateSubTotal();
         }

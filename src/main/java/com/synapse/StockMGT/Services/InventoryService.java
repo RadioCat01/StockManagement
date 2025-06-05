@@ -1,5 +1,6 @@
 package com.synapse.StockMGT.Services;
 
+import com.synapse.StockMGT.DTOs.BulkTransferDTO;
 import com.synapse.StockMGT.DTOs.InventoryDTO;
 import com.synapse.StockMGT.DTOs.ItemHistoryResDTO;
 import com.synapse.StockMGT.DTOs.TransferReqDTO;
@@ -24,6 +25,7 @@ public class InventoryService {
     private final ItemRepo itemRepo;
     private final StoreRepo storeRepo;
     private final ItemHistoryRepo itemHistoryRepo;
+    private final ItemInfoRepo itemInfoRepo;
     private static final Random random = new Random();
 
     public List<InventoryDTO> getInventory() {
@@ -66,7 +68,6 @@ public class InventoryService {
 
         StringBuilder sb = new StringBuilder();
         Store prevStore = null;
-        String description = null;
         for (InventoryDTO inventoryDTO : transferReqDTO.getItems()) {
             if(inventoryDTO.getStoreId() != store.getStoreId()) {
                 Item item = itemRepo.findById(inventoryDTO.getItemId())
@@ -81,11 +82,10 @@ public class InventoryService {
                                 .build());
 
                 item.setStore(store);
-                description = inventoryDTO.getDescription();
                 item.setLastUpdate(LocalDate.now());
                 item.setCurrentPosition(store.getSubCompany().getSubCompanyName());
                 itemRepo.save(item);
-                sb.append(inventoryDTO.getBrand()).append(inventoryDTO.getItemCode())
+                sb.append(inventoryDTO.getBrand()).append(" ").append(inventoryDTO.getItemCode())
                         .append(" - ").append(item.getSerialNumber())
                         .append("<br><br>");
             }
@@ -101,6 +101,52 @@ public class InventoryService {
                         .build());
         return "Done";
     }
+
+    @Transactional
+    public String bulkTransfer(BulkTransferDTO bulkTransferDTO) {
+        Store store = storeRepo.findById(bulkTransferDTO.getStoreId())
+                .orElseThrow(() -> new RuntimeException("Store not found"));
+        ItemInfo itemInfo =itemInfoRepo.findByItemCode(bulkTransferDTO.getItemCode())
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        List<Item> items = itemInfo.getItems().stream()
+                .filter(item -> item.getStore().getStoreId() != bulkTransferDTO.getStoreId())
+                .limit(bulkTransferDTO.getItemQuantity())
+                .toList();
+
+        StringBuilder sb = new StringBuilder();
+        Store prevStore = null;
+
+        for (Item item : items) {
+            prevStore = item.getStore();
+            item.setLastUpdate(LocalDate.now());
+            item.setCurrentPosition(store.getSubCompany().getSubCompanyName());
+            item.setStore(store);
+            itemHistoryRepo.save(ItemHistory.builder()
+                            .brand(bulkTransferDTO.getBrand())
+                            .itemCode(bulkTransferDTO.getItemCode())
+                            .serialNo(item.getSerialNumber())
+                            .currentState("Transferred to: " + store.getSubCompany().getSubCompanyName())
+                            .lastUpdate(LocalDate.now())
+                            .build());
+            itemRepo.save(item);
+            sb.append(bulkTransferDTO.getBrand()).append(" ").append(bulkTransferDTO.getItemCode())
+                    .append(" - ").append(item.getSerialNumber())
+                    .append("<br><br>");
+        }
+        assert prevStore != null;
+
+        transferRepo.save(Transfers.builder()
+                .transferNumber(generateTransferNumber())
+                .transferDate(LocalDate.now())
+                .reason(bulkTransferDTO.getReason())
+                .serials(sb.toString())
+                .transferFrom(prevStore.getSubCompany().getSubCompanyName())
+                .transferTo(store.getSubCompany().getSubCompanyName())
+                .build());
+        return "Done";
+    }
+
     public static String generateTransferNumber() {
         int number = random.nextInt(1_000_000);
         return String.format("%06d", number);

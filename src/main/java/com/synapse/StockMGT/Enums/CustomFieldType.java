@@ -1,4 +1,4 @@
-package com.synapse.StockMGT.CustomFields;
+package com.synapse.StockMGT.Enums;
 
 public enum CustomFieldType {
     TEXT, NUMBER, DATE, TIME

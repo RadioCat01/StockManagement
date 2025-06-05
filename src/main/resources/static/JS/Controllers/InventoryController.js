@@ -11,6 +11,42 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
     }
     $scope.itemHistory=[];
     $scope.searchSerialNumber=null;
+    $scope.categories=[];
+    $scope.brands=[];
+    $scope.itemInfos=[];
+
+    $scope.selectedCategory = null;
+    $scope.selectedBrand = null;
+    $scope.selectedItemInfo=null;
+    $scope.itemQuantity=0;
+    $scope.fromSelectedStore=null;
+
+    $scope.selectCategory = function (category) {
+        $scope.selectedCategory = category;
+        $scope.selectedBrand = null;
+    };
+    $scope.selectBrand = function (brand) {
+        $scope.selectedBrand = brand;
+        $scope.bulkTransferDTO.brand=brand.brandName;
+    };
+    $scope.selectItemInfo= function (itemInfo){
+       $scope.itemQuantity = itemInfo.items.filter(item =>
+            item.store.storeId === $scope.fromSelectedStore
+        ).length;
+       $scope.bulkTransferDTO.itemCode=$scope.selectedItemInfo.itemCode;
+    }
+    $scope.selectBulkTransferTo= function (){
+        $scope.itemQuantity = $scope.selectedItemInfo.items.filter(item =>
+            item.store.storeId === $scope.fromSelectedStore
+        ).length;
+    }
+    $scope.bulkTransferDTO={
+        storeId:0,
+        brand:'',
+        itemCode:'',
+        itemQuantity:0,
+        reason:null
+    };
 
     const inventoryTable = $('#inventoryTable').DataTable({
         paging: true,
@@ -89,6 +125,9 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
                 titleAttr: 'Print'
             }
         ],
+        scrollY: '600px',
+        scrollCollapse: true,
+        scroller: false,
         initComplete: function () {
             this.api().columns().every(function () {
                 var column = this;
@@ -158,6 +197,7 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
                 .then(function (res){
                     fetchAndRenderInventory($scope.selectedStore);
                     clearFields();
+                    getCategories();
                     getTransfers();
                     toastr.success('Stock Moved!', 'Success');
                 },function (err){
@@ -183,6 +223,40 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
             },function (err){
                 toastr.warning('Error Fetching ItemHistory!', 'Error');
             })
+    }
+
+    $scope.transferBulk = function (){
+        if($scope.itemQuantity >= $scope.bulkTransferDTO.itemQuantity && $scope.bulkTransferDTO.itemQuantity>0
+            && $scope.bulkTransferDTO.reason !=null){
+            $http.post(APP_CONFIG.apiBase + `/inventoryCont/transferBulk`, $scope.bulkTransferDTO)
+                .then(function (res){
+                    fetchAndRenderInventory();
+                    clearBulkTransferFields();
+                    getTransfers();
+                    getCategories();
+                    toastr.success('Stock Moved!', 'Success');
+                },function (err){
+                    toastr.warning('Stock Moving Failed!', 'Error');
+                })
+        }
+        else {
+            toastr.warning('Enter Valid Inputs!', 'Error');
+        }
+    }
+
+    function clearBulkTransferFields(){
+        $scope.bulkTransferDTO={
+            storeId:0,
+            category:'',
+            brand:'',
+            itemInfo:'',
+            itemQuantity:0,
+        };
+        $scope.selectedCategory = null;
+        $scope.selectedBrand = null;
+        $scope.selectedItemInfo=null;
+        $scope.itemQuantity=0;
+        $scope.fromSelectedStore=null;
     }
 
     function fetchAndRenderInventory(filterStoreId) {
@@ -272,6 +346,16 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
         historyTable.draw();
     }
 
+    function getCategories(){
+        $http.get(APP_CONFIG.apiBase + '/mgt/cat')
+            .then(function (res) {
+                $scope.categories = res.data;
+            }, function (err) {
+                toster.warning("Error Fetching Data");
+            });
+    }
+
+    getCategories();
     getStores();
     fetchAndRenderInventory();
     getTransfers();

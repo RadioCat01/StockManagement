@@ -24,4 +24,8 @@ public class SoldProducts extends TenantAwareSupperClass{
     @JoinColumn(name="SoldProductID")
     @Builder.Default
     private List<SoldItem> soldItems = new ArrayList<>();
+
+    @OneToOne
+    @JoinColumn(name = "storeId")
+    private Store store;
 }

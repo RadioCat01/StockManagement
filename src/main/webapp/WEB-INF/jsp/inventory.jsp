@@ -61,6 +61,8 @@
                     </li>
                     <li><a class="menu-item" href="${pageContext.request.contextPath}/addCategory">Stock Management</a>
                     </li>
+                    <li><a class="menu-item" href="${pageContext.request.contextPath}/customerJobs">Job Management</a>
+                    </li>
                 </ul>
             </li>
             <li class=" nav-item"><a href="#"><i class="ft-printer"></i><span class="menu-title" data-i18n="">Reporting</span></a>
@@ -112,7 +114,7 @@
                             <div>
                                 <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#stockTransferModel">
                                     <i class="ft-corner-up-right"></i>
-                                    Stock Transfer</button>
+                                    Item Transfer</button>
                             </div>
                         </div>
                         <div class="card-content collapse show">
@@ -152,9 +154,11 @@
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">Stock Transfer</h4>
-                            <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">Stock Transfer</h4>
+                            <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#bulkTransferModel">
+                                <i class="ft-corner-up-right"></i> Transfer Bulk
+                            </button>
                         </div>
                         <div class="card-body card-dashboard">
                             <table id="transfersTable" class="table table-striped table-bordered">
@@ -238,7 +242,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="col-md-2 p-0">
+                        <div class="col-md-6 p-0">
                             <label for="storeId">Transfer To:</label>
                             <select ng-model="toTransfer.transferTo"
                                     ng-options="store.storeId as store.storeName for store in stores"
@@ -284,6 +288,109 @@
                         </div>
                         <div class="text-right">
                             <button class="btn btn-primary" ng-click="transfer()">Transfer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ////// Bulk Transfer Model /////////-->
+        <div class="modal fade text-left" id="bulkTransferModel" tabindex="-1" role="dialog"
+             aria-labelledby="addProductModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header btn-bg-gradient-x-purple-blue white">
+                        <h4 class="modal-title white" id="addProductModalLabel">Transfer Stock Batch</h4>
+                        <button type="button" class="close white" data-dismiss="modal"
+                                aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label for="storeId">Transfer From:</label>
+                                <select ng-model="fromSelectedStore"
+                                        ng-change="selectBulkTransferTo()"
+                                        ng-options="store.storeId as store.storeName for store in stores"
+                                        class="form-control mb-2"
+                                        id="storeId"
+                                        required>
+                                    <option value="" disabled>Select a store</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a store.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="storeId">Transfer To:</label>
+                                <select ng-model="bulkTransferDTO.storeId"
+                                        ng-options="store.storeId as store.storeName for store in stores"
+                                        class="form-control mb-2"
+                                        id="storeId"
+                                        required>
+                                    <option value="" disabled>Select a store</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a store.</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label for="categorySelect">Select Category:</label>
+                                <select id="categorySelect" class="form-control"
+                                        ng-model="selectedCategory"
+                                        ng-change="selectCategory(selectedCategory)"
+                                        ng-options="category.categoryName for category in categories"
+                                        required>
+                                    <option value="" disabled>Select a category</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a category.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="brandSelect">Select Brand:</label>
+                                <select id="brandSelect" class="form-control"
+                                        ng-model="selectedBrand"
+                                        ng-change="selectBrand(selectedBrand)"
+                                        ng-options="brand.brandName for brand in selectedCategory.brands"
+                                        required>
+                                    <option value="" disabled>Select a brand</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a brand.</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label for="itemCodeSelect">Select Item Code:</label>
+                                <select id="itemCodeSelect" class="form-control"
+                                        ng-model="selectedItemInfo"
+                                        ng-change="selectItemInfo(selectedItemInfo)"
+                                        ng-options="itemInfo as itemInfo.itemCode for itemInfo in selectedBrand.itemInfos"
+                                        required>
+                                    <option value="" disabled>Select an item code</option>
+                                </select>
+                                <div class="invalid-feedback">Please select an item code.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quantity">Quantity Available: {{itemQuantity}}</label>
+                                <input type="number" id="quantity" class="form-control"
+                                       ng-model="bulkTransferDTO.itemQuantity"
+                                       placeholder="Select Quantity to Transfer"/>
+                                <div class="invalid-feedback">Please enter item quantity.</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 p-0 mb-1">
+                            <label for="transferReason">Reason for Transfer:</label>
+                            <textarea id="transferReason"
+                                      ng-model="bulkTransferDTO.reason"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Enter reason for stock transfer"
+                                      required></textarea>
+                            <div class="invalid-feedback">Please enter a reason.</div>
+                        </div>
+                        <div class="text-right">
+                            <button class="btn btn-primary" ng-click="transferBulk()">Transfer</button>
                         </div>
                     </div>
                 </div>

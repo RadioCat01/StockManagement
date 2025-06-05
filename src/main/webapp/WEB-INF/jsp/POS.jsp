@@ -106,6 +106,8 @@
                     </li>
                     <li><a class="menu-item" href="${pageContext.request.contextPath}/addCategory">Stock Management</a>
                     </li>
+                    <li><a class="menu-item" href="${pageContext.request.contextPath}/customerJobs">Job Management</a>
+                    </li>
                 </ul>
             </li>
             <li class=" nav-item"><a href="#"><i class="ft-printer"></i><span class="menu-title" data-i18n="">Reporting</span></a>
@@ -295,6 +297,7 @@
                     </div>
 
 
+                    <!-- /////////// Product Section ////////// -->
                     <div class="col-md-6 col-sm-12">
                         <div id="with-header-border-0" class="card">
                             <div class="card-header">
@@ -397,6 +400,7 @@
                         </div>
                     </div>
 
+                    <!-- //////////// Checkout Section /////////// -->
                     <div class="col-md-3 col-sm-12">
                         <div id="with-header" class="card">
                             <div class="card-header">

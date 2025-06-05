@@ -7,13 +7,13 @@ import lombok.*;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "CustomFields_customer")
+@Table(name = "CustomFields_jobs")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CustomFields_customer extends TenantAwareSupperClass {
+public class CustomFields_jobs extends TenantAwareSupperClass {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
