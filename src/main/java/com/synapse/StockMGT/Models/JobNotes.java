@@ -1,7 +1,9 @@
 package com.synapse.StockMGT.Models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.synapse.StockMGT.CustomFields.CustomFields_customer;
 import com.synapse.StockMGT.CustomFields.CustomFields_jobs;
+import com.synapse.StockMGT.Enums.JobStatus;
 import com.synapse.StockMGT.Enums.JobTypes;
 import lombok.*;
 
@@ -35,10 +37,17 @@ public class JobNotes extends TenantAwareSupperClass{
     private JobTypes jobType;
 
     private LocalDate invoicedDate;
+
+    @Column(unique = true)
     private String invoiceNumber;
+    private JobStatus status;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "jobId")
     @Builder.Default
     private List<CustomFields_jobs> customFields = new ArrayList<>();
+
+    @OneToOne
+    @JsonBackReference
+    private ReplacementNote replacementNote;
 }

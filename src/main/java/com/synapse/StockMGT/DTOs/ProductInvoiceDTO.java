@@ -16,4 +16,9 @@ public class ProductInvoiceDTO {
     private int quantity;
     private Double total;
     private LocalDate invoiceDate;
+    private LocalDate grnDate;
+    private LocalDate supplierWarrantyUntil;
+    private LocalDate sellerWarrantyUntil;
+    private String remainingSellerWarranty;
+    private String remainingSupplierWarranty;
 }

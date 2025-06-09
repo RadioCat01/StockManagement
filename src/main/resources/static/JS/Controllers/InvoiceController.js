@@ -65,7 +65,7 @@ angular.module('Stock').controller('InvoiceController', function($scope, $http){
                             invoice.invoiceNumber,
                             invoice.poReference,
                             invoice.invoiceDate ? invoice.invoiceDate.substring(0, 10) : '',
-                            `${invoice.customerName}`,
+                            `${invoice.customerName} <br> ${invoice.customerPhone}`,
                             invoice.saleType,
                             paymentBadge,
                             `${invoice.totalInvoice.toFixed(2)} Rs`,

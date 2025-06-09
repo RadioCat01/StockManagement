@@ -17,15 +17,23 @@ public class JobItem extends TenantAwareSupperClass{
     private Integer jobItemId;
 
     private String description;
+    @Column(unique = true)
     private String serial;
 
     @Lob
     @Column(name = "defectiveDetails", columnDefinition = "TEXT")
     private String defectiveDetails;
 
-    private String remainingWarranty;
+    private String remainingSellerWarranty;
+    private String remainingSupplierWarranty;
 
     @Column(unique = true)
     private String barCode;
     private String barCodeImage;
+
+    private boolean isWarrantyClaimed;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "itemId")
+    private ReplacedItem replacedItem;
 }

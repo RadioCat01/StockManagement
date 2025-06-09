@@ -493,10 +493,17 @@
                                                             <h6 class="mb-2 text-bold-600 mt-3">Item Details</h6>
                                                             <hr class="section-divider">
                                                             <div class="row mb-2">
-                                                                <div class="col-md-12">
-                                                                    <label for="warranty">Warranty:</label>
+                                                                <div class="col-md-6">
+                                                                    <label for="warranty">Supplier Warranty:</label>
                                                                     <input type="text" id="warranty" class="form-control"
                                                                            ng-model="itemDTO.warranty"
+                                                                           placeholder="Warranty Period"/>
+                                                                    <div class="invalid-feedback">Please enter warranty period.</div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="warranty">Seller Warranty:</label>
+                                                                    <input type="text" id="warranty" class="form-control"
+                                                                           ng-model="itemDTO.sellerWarranty"
                                                                            placeholder="Warranty Period"/>
                                                                     <div class="invalid-feedback">Please enter warranty period.</div>
                                                                 </div>

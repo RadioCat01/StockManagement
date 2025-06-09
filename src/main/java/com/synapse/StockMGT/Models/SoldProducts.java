@@ -28,4 +28,5 @@ public class SoldProducts extends TenantAwareSupperClass{
     @OneToOne
     @JoinColumn(name = "storeId")
     private Store store;
+    private String sellerWarranty;
 }

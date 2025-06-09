@@ -2,20 +2,17 @@ package com.synapse.StockMGT.Services;
 
 import com.synapse.StockMGT.DTOs.InvoiceDTO;
 import com.synapse.StockMGT.DTOs.ProductInvoiceDTO;
-import com.synapse.StockMGT.DTOs.ServiceChargeDTO;
 import com.synapse.StockMGT.Models.*;
 import com.synapse.StockMGT.Repos.InvoiceRepo;
 import com.synapse.StockMGT.Repos.ItemInfoRepo;
-import com.synapse.StockMGT.Repos.SalesRepo;
 import com.synapse.StockMGT.Repos.SupplierGRNRepo;
+import com.synapse.StockMGT.Util.WarrantyCal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +21,7 @@ public class InvoiceService {
     private final InvoiceRepo invoiceRepo;
     private final ItemInfoRepo itemInfoRepo;
     private final SupplierGRNRepo supplierGRNRepo;
+    private final WarrantyCal warrantyCal;
 
     public List<?> getAllInvoices() {
         List<Invoice> invoices = invoiceRepo.findAll();
@@ -141,6 +139,11 @@ public class InvoiceService {
                                     .serials(soldItem.getSerialNumber())
                                     .warranty(grn.getWarranty())
                                     .invoiceDate(invoice.getInvoiceDate())
+                                    .grnDate(grn.getGrnDate())
+                                    .supplierWarrantyUntil(warrantyCal.getSupplierWarranty(grn))
+                                    .sellerWarrantyUntil(warrantyCal.getSellerWarranty(grn,invoice))
+                                    .remainingSellerWarranty(warrantyCal.getRemainingSellerWarrantyInMonths(grn,invoice))
+                                    .remainingSupplierWarranty(warrantyCal.getRemainingSupplierWarrantyInMonths(grn))
                                     .build());
                 }
             }
@@ -150,6 +153,7 @@ public class InvoiceService {
                     .invoiceNumber(invoice.getInvoiceNumber())
                     .invoiceDate(invoice.getInvoiceDate())
                     .invoiceId(invoice.getInvoiceId())
+                    .poDate(invoice.getPoDate())
                     .products(items)
                     .build();
                 })

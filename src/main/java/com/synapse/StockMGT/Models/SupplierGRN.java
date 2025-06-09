@@ -28,6 +28,7 @@ public class SupplierGRN extends TenantAwareSupperClass{
     private String productDescription;
 
     private String warranty;
+    private String sellerWarranty;
     private int quantity;
     private Double cost;
     private Double dealerPrice;

@@ -8,17 +8,26 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
         invoiceDate:'',
         customerName:'',
         customerPhone:'',
-
         jobItems:[],
-        customFields:[]
+        customFields:[],
+        claimSerials:[]
     }
     $scope.jobItem={
         description:'',
         serial:'',
         defectiveDetails:'',
-        remainingWarranty:'',
+        remainingSellerWarranty:'',
+        remainingSupplierWarranty:''
     }
     $scope.searchedInvoice=null;
+    $scope.barcodeItems = [];
+    $scope.selectedWarrantyJob=null;
+    $scope.claimSerials=[];
+    $scope.addSerial='';
+
+    $scope.claimedWarrantyJob={
+        jobItems:[],
+    };
 
     $scope.addCustomJobItem = function() {
         if (!$scope.jobItem.description || !$scope.jobItem.serial) {
@@ -37,14 +46,16 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
             serial: $scope.jobItem.serial,
             defectiveDetails: $scope.jobItem.defectiveDetails || '',
             remainingWarranty: $scope.jobItem.remainingWarranty || '',
-        };
+            remainingSellerWarranty : $scope.jobItem.remainingSellerWarranty || '',
+            remainingSupplierWarranty: $scope.jobItem.remainingSupplierWarranty || '',        };
 
         $scope.jobDTO.jobItems.push(newJobItem);
 
         $scope.jobItem.description = '';
         $scope.jobItem.serial = '';
         $scope.jobItem.defectiveDetails = '';
-        $scope.jobItem.remainingWarranty = '';
+        $scope.jobItem.remainingSellerWarranty = '';
+        $scope.jobItem.remainingSupplierWarranty = '';
 
         toastr.success('Job item added successfully.', 'Success');
     };
@@ -52,6 +63,8 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
     $scope.selectSearched=function (product){
         $scope.jobItem.description=product.productDescription;
         $scope.jobItem.serial=product.serials;
+        $scope.jobItem.remainingSellerWarranty = product.remainingSellerWarranty;
+        $scope.jobItem.remainingSupplierWarranty = product.remainingSupplierWarranty;
     }
 
     $scope.removeJobItem = function(index) {
@@ -79,14 +92,52 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
         if(validateInputs()){
             $http.post(APP_CONFIG.apiBase + `/job/add`,$scope.jobDTO)
                 .then(function (res){
-                    clearFields();
-                    getJobs();
+                    if (res.data && res.data.jobItems && res.data.jobItems.length > 0) {
+                        $scope.barcodeItems = res.data.jobItems;
+                        $('#barcodeModal').modal('show');
+                        clearFields();
+                        getJobs();
+                    }
                     toastr.success('Job Saved!', 'Success');
                 },function (err){
                     toastr.warning('Error Saving Jobs!', 'Error');
                 })
         }
     }
+
+    $scope.printBarcode = function (base64Image) {
+        const imageSrc = `data:image/png;base64,${base64Image}`;
+        printBarcodeImage(imageSrc);
+    };
+
+    $scope.openWarrantyModal = function(job) {
+        $scope.selectedWarrantyJob = job;
+        $scope.claimedWarrantyJob =job;
+        console.log(job);
+        $('#warrantyModal').modal('show');
+        $scope.claimSerials = [];
+        $scope.$applyAsync();
+    };
+
+    $scope.addClaimSerial = function (){
+        $scope.claimSerials.push($scope.addSerial);
+        $scope.addSerial='';
+    }
+    $scope.clearClaimSerials = function (){
+        $scope.claimSerials = [];
+    }
+
+    $scope.claimWarranty = function (){
+        $scope.selectedWarrantyJob.claimSerials= $scope.claimSerials;
+        $http.post(APP_CONFIG.apiBase + `/job/warranty`, $scope.selectedWarrantyJob)
+            .then(function (res){
+                $scope.claimedWarrantyJob=res.data;
+                toastr.success('Warranty Claim Success!', 'Success');
+                clearFields();
+                getJobs();
+            },function (err){});
+    }
+
     function validateInputs (){
         if($scope.jobDTO.customerPhone != null && $scope.jobDTO.customerName !=null &&
             $scope.jobDTO.jobItems.length >0){
@@ -99,8 +150,22 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
             description:'',
             serial:'',
             defectiveDetails:'',
-            remainingWarranty:'',
-        };
+            remainingSellerWarranty:'',
+            remainingSupplierWarranty:''
+        }
+        $scope.jobDTO={
+            jobType:null,
+            invoiceNumber:'',
+            invoiceDate:'',
+            customerName:'',
+            customerPhone:'',
+            jobItems:[],
+            customFields:[],
+            claimSerials:[]
+        }
+        $scope.searchedInvoice=null;
+        $scope.addSerial='';
+        $scope.claimSerials=[];
     }
 
     function initializeDataTable() {
@@ -139,7 +204,6 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
         $http.get(APP_CONFIG.apiBase + `/job/get`)
             .then(function (res) {
                 const data = res.data;
-
                 if (!jobTable || !$.fn.DataTable.isDataTable('#jobTable')) {
                     jobTable = initializeDataTable();
                 } else {
@@ -157,27 +221,31 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
                                     <div style="max-width: 500px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
                                         <strong>Defective Details:</strong> ${item.defectiveDetails || ''}
                                     </div>
-                                    <div><strong>Remaining Warranty:</strong> ${item.remainingWarranty || ''}</div>
-                                </div>
-                                <div style="flex-shrink: 0; width: 110px; text-align: right;">
-                                    <img src="data:image/png;base64,${item.barcodeImage || ''}" 
-                                         alt="Barcode" 
-                                         style="height:40px; max-width: 100%;"/>
-                                </div>
+                                </div>                            
                             </div>
 
                         `).join('')
                             : 'No items';
 
                         const actionDropdown = `
-                        <span>
-                            <button type="button" class="btn btn-light btn-xs open-invoice" data-invoice-id="${job.invoiceId || ''}" title="Open">
-                                <i class="la la-eye action-icons"></i>
-                            </button>
-                            <button type="button" class="btn btn-light btn-xs edit-invoice" data-invoice-id="${job.invoiceId || ''}" title="Edit">
-                                <i class="la la-pencil action-icons"></i>
-                            </button>
-                        </span>`;
+                            <span>
+                                <button type="button" class="btn btn-outline-blue btn-xs edit-invoice" data-job-number="${job.jobNumber || ''}" title="Edit">
+                                    <i class="la la-pencil action-icons"></i>
+                                </button>
+                            </span>`;
+
+
+                        const getStatusBadge = (status) => {
+                            const statusMap = {
+                                'PENDING': 'badge-warning',
+                                'WARRANTY_CLAIMED': 'badge-success',
+                                'DISPATCHED': 'badge-info',
+                                'DELIVERED': 'badge-secondary'
+                            };
+
+                            const badgeClass = statusMap[status] || 'badge-secondary';
+                            return `<span class="badge ${badgeClass}">${status || 'N/A'}</span>`;
+                        };
 
                         jobTable.row.add([
                             job.jobNumber || '',
@@ -186,16 +254,83 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
                             job.invoiceNumber || '',
                             job.invoiceDate || '',
                             itemsHtml,
-                            job.status || 'N/A',
+                            getStatusBadge(job.status),
                             actionDropdown
                         ]);
                     });
                     jobTable.draw();
+
+                    $('#jobTable tbody').off('click', '.edit-invoice').on('click', '.edit-invoice', function () {
+                        const jobNumber = $(this).data('job-number');
+                        const selectedJob = data.find(j => String(j.jobNumber) === String(jobNumber));
+                        if (selectedJob) {
+                            $scope.openWarrantyModal(selectedJob);
+                        } else {
+                            toastr.warning('Job not found for job number: ' + jobNumber);
+                        }
+                    });
                 }
             }, function (err) {
                 toastr.warning('Error Fetching Jobs!', 'Error');
             });
     }
+
+    $(document).on('click', '.barcode-printable', function (e) {
+        e.preventDefault();
+        const imgSrc = $(this).attr('src');
+        printBarcodeImage(imgSrc);
+    });
+
+    function printBarcodeImage(imageSrc) {
+        const printWindow = window.open('', '_blank', 'width=400,height=300');
+        printWindow.document.write(`
+        <html>
+            <head>
+                <title>Print Barcode</title>
+                <style>
+                    body {
+                        margin: 0;
+                        padding: 10px;
+                        position: relative;
+                        height: 100vh;
+                    }
+                    img {
+                        width: 100px;
+                        height: auto;
+                        position: absolute;
+                        top: 10px;
+                        left: 10px;
+                    }
+                    @media print {
+                        body {
+                            margin: 0;
+                            padding: 0;
+                        }
+                        img {
+                            width: 100px;
+                            height: auto;
+                            position: absolute;
+                            top: 10px;
+                            left: 10px;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <img src="${imageSrc}" alt="Barcode" />
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        window.onafterprint = function() { window.close(); }
+                    }
+                <\/script>
+            </body>
+        </html>
+    `);
+        printWindow.document.close();
+    }
+
+
 
     initializeDataTable();
     getJobs();

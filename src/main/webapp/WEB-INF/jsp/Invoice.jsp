@@ -13,7 +13,7 @@
         }
 
         .action-icons {
-            font-size: 0.85rem; /* Optional: make the icon size smaller as well */
+            font-size: 0.85rem;
         }
     </style>
 

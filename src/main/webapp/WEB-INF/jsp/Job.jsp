@@ -21,7 +21,16 @@
       overflow-y: auto;
       margin: 15px 0;
     }
+    .btn-xs {
+      padding: 0.2rem 0.4rem;
+      font-size: 0.75rem;
+      line-height: 1;
+      border-radius: 0.2rem;
+    }
 
+    .action-icons {
+      font-size: 15rem;
+    }
 
   </style>
 </head>
@@ -159,7 +168,6 @@
                           <th>Invoice Date</th>
                           <th>Item Details</th>
                           <th>Status</th>
-                          <th>Actions</th>
                         </tr>
                         </tfoot>
                       </table>
@@ -170,7 +178,7 @@
             </div>
 
 
-            <!-- Supplier Model -->
+            <!-- AddJob Model -->
             <div class="modal fade text-left" id="addJob" tabindex="-1" role="dialog" aria-labelledby="addJobModalLabel" aria-hidden="true">
               <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
@@ -325,21 +333,44 @@
                               </div>
                             </div>
 
-                            <div class="form-group">
-                              <label for="warranty">Remaining Warranty Period(if available)</label>
-                              <div class="d-flex align-items-center">
-                                <div class="position-relative has-icon-left flex-grow-1">
-                                  <input type="text" id="warranty" class="form-control"
-                                         ng-model="jobItem.remainingWarranty"
-                                         placeholder="Enter Remaining Period">
+
+                            <div class="d-flex align-items-end" style="gap: 1rem; flex-wrap: wrap;">
+
+                              <!-- Remaining Seller Warranty -->
+                              <div style="display: flex; flex-direction: column; flex: 1; min-width: 180px;">
+                                <label for="remainingSellerWarranty" style="margin-bottom: 0.25rem;">
+                                  Remaining Seller Warranty
+                                </label>
+                                <div class="position-relative has-icon-left">
+                                  <input type="text" id="remainingSellerWarranty" class="form-control"
+                                         ng-model="jobItem.remainingSellerWarranty"
+                                         placeholder="Remaining Seller Warranty">
                                   <div class="form-control-position">
                                     <i class="la la-calendar"></i>
                                   </div>
                                 </div>
-                                <button type="button" ng-click="addCustomJobItem()" class="btn btn-secondary ml-2">
-                                  Add
-                                </button>
                               </div>
+
+                              <!-- Remaining Supplier Warranty -->
+                              <div style="display: flex; flex-direction: column; flex: 1; min-width: 180px;">
+                                <label for="remainingSupplierWarranty" style="margin-bottom: 0.25rem;">
+                                  Remaining Supplier Warranty
+                                </label>
+                                <div class="position-relative has-icon-left">
+                                  <input type="text" id="remainingSupplierWarranty" class="form-control"
+                                         ng-model="jobItem.remainingSupplierWarranty"
+                                         placeholder="Remaining Supplier Warranty">
+                                  <div class="form-control-position">
+                                    <i class="la la-calendar"></i>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- Add Button -->
+                              <button type="button" ng-click="addCustomJobItem()" class="btn btn-secondary" style="height: 38px; white-space: nowrap;">
+                                Add
+                              </button>
+
                             </div>
 
                             <div class="row">
@@ -381,7 +412,8 @@
                                      style="cursor: pointer;">
                                   <div><strong>Products:</strong> {{ product.productDescription || 'N/A' }}</div>
                                   <div><strong>Serials:</strong> {{ product.serials || 'N/A' }}</div>
-                                  <div><strong>Warranty:</strong> {{ product.warranty || 'N/A' }} from {{product.invoiceDate || 'N/A'}}</div>
+                                  <div><strong>Supplier Warranty:</strong> Until {{ product.supplierWarrantyUntil || 'N/A' }}</div>
+                                  <div><strong>Seller Warranty:</strong> Until {{ product.sellerWarrantyUntil || 'N/A'}}</div>
                                 </div>
                               </div>
 
@@ -422,15 +454,204 @@
                                 </button>
                               </div>
                             </div>
-
-
                     </form>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
+            <!-- /////// Barcode Modal /////// -->
+            <div id="barcodeModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="barcodeModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 400px;">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="barcodeModalLabel">Barcodes</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="closeBarcodeModal()">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+                    <div ng-repeat="item in barcodeItems"
+                         class="barcode-item-card"
+                         style="display: flex; flex-direction: column; align-items: center; border: 1px solid #ddd; border-radius: 8px; padding: 16px; min-width: 220px; background: #fafbfc;">
+                      <img ng-src="data:image/png;base64,{{item.barcodeImage}}"
+                           alt="Barcode"
+                           class="barcode-printable"
+                           style="height: 80px; margin-bottom: 10px; cursor: pointer;"
+                           ng-click="printBarcode(item.barcodeImage)" />
+                      <div class="barcode-details" style="text-align: left; width: 100%;">
+                        <div><strong>Description:</strong> {{item.description}}</div>
+                        <div><strong>Serial:</strong> {{item.serial}}</div>
+                        <div ng-if="item.defectiveDetails"><strong>Defective Details:</strong> {{item.defectiveDetails}}</div>
+                        <div><strong>Seller Warranty:</strong> {{item.remainingSellerWarranty}}</div>
+                        <div><strong>Supplier Warranty:</strong> {{item.remainingSupplierWarranty}}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+
+            <!-- /////// Warranty Modal ///////-->
+            <div class="modal fade text-left" id="warrantyModal" tabindex="-1" role="dialog" aria-labelledby="warrantyModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+
+                  <div class="modal-header btn-bg-gradient-x-purple-blue white">
+                    <h4 class="modal-title white" id="warrantyModalLabel">Manage Customer Job</h4>
+                    <button type="button" class="close white" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+
+                  <div class="modal-body">
+                    <form class="form needs-validation" ng-submit="addJob()" novalidate>
+                      <div class="form-body">
+                        <div class="form-group d-flex justify-content-end">
+                          <div class="dropdown">
+                            <button class="btn btn-outline-info dropdown-toggle" type="button"
+                                    id="customFieldsDropdown" data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
+                              Fields
+                            </button>
+
+                            <!-- Dropdown Menu with Checkboxes -->
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="customFieldsDropdown">
+                              <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       ng-model="supplierCustom.taxId.enabled"
+                                       ng-change="toggleCustomField('taxId')"
+                                       id="taxIdCheckbox">
+                                <label class="form-check-label" for="taxIdCheckbox">Vat Number</label>
+                              </div>
+                              <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       ng-model="supplierCustom.bankDetails.enabled"
+                                       ng-change="toggleCustomField('bankDetails')"
+                                       id="BankDetailsCheckbox">
+                                <label class="form-check-label" for="bankDetailsCheckbox">Bank Details</label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="d-flex" style="position: relative; gap: 2rem;">
+                          <div class="col-md-6 flex-fill">
+                            <h5>Warranty Replacement</h5>
+                            <div class="form-group">
+                              <label for="serialNumber">Serial Number for Warranty Replacement</label>
+                              <div class="d-flex align-items-center">
+                                <div class="position-relative has-icon-left flex-grow-1">
+                                  <input type="text" id="serialNumber" class="form-control"
+                                         ng-model="addSerial"
+                                         placeholder="Enter Invoice Number"
+                                         name="invoiceNumber" required>
+                                  <div class="form-control-position">
+                                    <i class="ft-user"></i>
+                                  </div>
+                                </div>
+                                <button type="button" ng-click="addClaimSerial()" class="btn btn-outline-secondary ml-2">
+                                  Add Item
+                                </button>
+                                <button type="button" ng-click="clearClaimSerials()" class="btn btn-outline-danger ml-2">
+                                  <i class="la la-remove"></i>
+                                </button>
+                              </div>
+                            </div>
+                            <div class="serials-wrapper" style="display: flex; align-items: center; gap: 12px; margin: 12px 0;">
+                              <div class="serials-container"
+                                   style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; max-width: 70vw;">
+
+                                <div ng-repeat="serial in claimSerials"
+                                     class="serial-chip"
+                                     style="background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 16px; padding: 6px 14px; font-size: 15px; color: #222; box-shadow: 0 1px 3px rgba(0,0,0,0.05); white-space: nowrap; flex-shrink: 0;">
+                                  {{serial}}
+                                </div>
+                              </div>
+                              <div ng-if="claimSerials.length > 0">
+                                <button type="button" ng-click="claimWarranty()" class="btn btn-outline-info" style="white-space: nowrap;">
+                                  Confirm Warranty Claim <i class="la la-clipboard"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            <div ng-repeat="item in claimedWarrantyJob.jobItems">
+                              <div ng-if="item.replacedItem.serial" style="display: flex;align-items: flex-start; border: 1px solid #3c4244; border-radius: 2px; padding:10px; margin-bottom: 10px;">
+                                <div style="flex: 1;">
+                                  <h6 style="margin-top: 0; margin-bottom: 12px; color: #333;">Faulty Item</h6>
+                                  <p><strong>Description:</strong> {{item.description}}</p>
+                                  <p><strong>Serial:</strong> {{item.serial}}</p>
+                                </div>
+
+                                <div style="flex: 1;">
+                                  <h6 style="margin-top: 0; margin-bottom: 12px; color: #333;">Replaced Item</h6>
+                                  <p><strong>Description:</strong> {{item.replacedItem.description}}</p>
+                                  <p><strong>Serial:</strong> {{item.replacedItem.serial}}</p>
+                                </div>
+                              </div>
+                            </div>
+
+                          </div>
+
+
+
+                          <div class="col-md-6 flex-fill">
+                            <h5 style="margin-bottom: 0.5rem;">Job Details</h5>
+                            <div style="margin-bottom: 1rem; padding: 0.5rem;">
+                              <p style="margin: 0.15rem 0;"><strong>Job Number:</strong> {{ selectedWarrantyJob.jobNumber }}</p>
+                              <p style="margin: 0.15rem 0;"><strong>Job Date:</strong> {{ selectedWarrantyJob.jobDate | date:'mediumDate' }}</p>
+                              <p style="margin: 0.15rem 0;"><strong>Job Type:</strong> {{ selectedWarrantyJob.jobType || 'N/A' }}</p>
+                              <p style="margin: 0.15rem 0;">
+                                <strong>Status:</strong>
+                                <span ng-style="selectedWarrantyJob.status === 'WARRANTY_CLAIMED' ? {'background-color': 'green', 'color': 'white', 'padding': '2px 6px', 'border-radius': '4px'} : {}">
+                                  {{ selectedWarrantyJob.status }}
+                                </span>
+                              </p>
+                              <p style="margin: 0.15rem 0;"><strong>Invoice Number:</strong> {{ selectedWarrantyJob.invoiceNumber }}</p>
+                              <p style="margin: 0.15rem 0;"><strong>Invoice Date:</strong> {{ selectedWarrantyJob.invoiceDate | date:'mediumDate' }}</p>
+                            </div>
+
+                            <h5 style="margin-bottom: 0.5rem;">Job Items and Defective Details</h5>
+                            <div ng-if="selectedWarrantyJob.jobItems && selectedWarrantyJob.jobItems.length > 0"
+                                 style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem;">
+                              <div ng-repeat="item in selectedWarrantyJob.jobItems"
+                                   style="margin-bottom: 0.5rem; padding: 0.3rem; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 0.5rem;">
+                                <div style="flex: 1; min-width: 0;">
+                                  <p style="margin: 0; font-weight: 600; font-size: 1rem;">{{ item.description }}</p>
+                                  <p style="margin: 0; font-size: 1rem; color: #555;">Serial: {{ item.serial }}</p>
+                                  <p style="margin: 0; font-size: 1rem; color: #555;">Defective: {{ item.defectiveDetails }}</p>
+                                  <p style="margin: 0; font-size: 1rem; color: #555;">Remaining Seller Warranty: {{ item.remainingSellerWarranty }}</p>
+                                  <p style="margin: 0; font-size: 1rem; color: #555;">Remaining Supplier Warranty: {{ item.remainingSupplierWarranty }}</p>
+                                  <p style="margin: 0; font-size: 1rem; color: #555; display: flex; align-items: center; gap: 6px;">
+                                    Warranty Claim Status:
+                                      <i ng-if="item.warrantyClaimed" class="ft-check-circle" style="color: green;"></i>
+                                      <i ng-if="!item.warrantyClaimed" class="ft-alert-circle" style="color: orangered;"></i>
+                                  </p>
+
+                                </div>
+                                <div style="flex-shrink: 0;">
+                                  <img ng-src="data:image/png;base64,{{ item.barcodeImage }}" alt="Barcode"
+                                       style="height: 30px; max-width: 100%; display: block;">
+                                </div>
+                              </div>
+                            </div>
+                            <div ng-if="!selectedWarrantyJob.jobItems || selectedWarrantyJob.jobItems.length === 0" style="font-size: 15rem; color: #888;">
+                              <p>No job items available.</p>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
         </div>
       </div>
     </div>

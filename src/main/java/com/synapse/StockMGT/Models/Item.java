@@ -33,7 +33,6 @@ public class Item extends TenantAwareSupperClass{
     private Double cost;
     private Double dealerPrice;
     private Double retailPrice;
-    private String warranty;
 
     @ManyToOne
     @JoinColumn(name = "storeId")

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -25,12 +26,27 @@ public class JobController {
         return ResponseEntity.ok(jobService.getJobs());
     }
 
+    @GetMapping("/replacementNotes")
+    public ResponseEntity<?> replacementNotes() {
+        jobLogger.info("replacementNotes called");
+        return ResponseEntity.ok(jobService.getRepNotes());
+    }
+
+    @GetMapping("/defectItems")
+    public ResponseEntity<?> getDefectItems() {
+        jobLogger.info("getDefectItems called");
+        return ResponseEntity.ok(jobService.getDefects());
+    }
+
     @PostMapping("/add")
     public ResponseEntity<?> addJob(@RequestBody JobDTO job) throws Exception {
         jobLogger.info("Adding job: " + job);
-        Map<String, String> response = new HashMap<>();
-        response.put("job", jobService.addJob(job));
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(jobService.addJob(job));
     }
 
+    @PostMapping("/warranty")
+    public ResponseEntity<?> addWarranty(@RequestBody JobDTO job) {
+        jobLogger.info("Adding warranty: " + job);
+        return ResponseEntity.ok(jobService.claimWarranty(job));
+    }
 }

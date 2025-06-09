@@ -17,6 +17,7 @@ public class InvoiceDTO {
     private String customerAddress;
     private LocalDate poDate;
     private String poReference;
+    private LocalDate grnDate;
 
     private String invoiceNumber;
     private LocalDate invoiceDate;

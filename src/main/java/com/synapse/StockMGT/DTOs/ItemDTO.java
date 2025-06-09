@@ -15,6 +15,7 @@ public class ItemDTO {
     private int supplierId;
     private String itemCode;
     private String warranty;
+    private String sellerWarranty;
     private int quantity;
     private Double itemCost;
     private Double dealerPrice;
