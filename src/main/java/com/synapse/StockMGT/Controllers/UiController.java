@@ -66,6 +66,12 @@ public class UiController {
         return "Job";
     }
 
+    @GetMapping("/company")
+    public String company() {
+        logger.info("company Page Called.");
+        return "CompanyMGT";
+    }
+
     @GetMapping("/invoiceTemp")
     public String invoiceTemp(@RequestParam("invoiceId") int invoiceId, Model model) {
         logger.info("invoiceTemp Page Called.{}", invoiceId);

@@ -1,6 +1,6 @@
 package com.synapse.StockMGT.Repos;
 
-import com.synapse.StockMGT.Models.SubCompany;
+import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

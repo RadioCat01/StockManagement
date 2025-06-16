@@ -1,14 +1,18 @@
 package com.synapse.StockMGT.DTOs;
 
 import com.synapse.StockMGT.CustomFields.CustomFields_grn;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ItemDTO {
     private int categoryId;
     private int brandId;

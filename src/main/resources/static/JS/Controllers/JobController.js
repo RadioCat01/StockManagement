@@ -97,6 +97,7 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
                         $('#barcodeModal').modal('show');
                         clearFields();
                         getJobs();
+                        getDefectItems();
                     }
                     toastr.success('Job Saved!', 'Success');
                 },function (err){
@@ -135,6 +136,8 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
                 toastr.success('Warranty Claim Success!', 'Success');
                 clearFields();
                 getJobs();
+                getDefectItems();
+                getReplacementNotes();
             },function (err){});
     }
 
@@ -168,7 +171,7 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
         $scope.claimSerials=[];
     }
 
-    function initializeDataTable() {
+    function initializeJobTable() {
         if ($.fn.DataTable.isDataTable('#jobTable')) {
             $('#jobTable').DataTable().destroy();
         }
@@ -205,7 +208,7 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
             .then(function (res) {
                 const data = res.data;
                 if (!jobTable || !$.fn.DataTable.isDataTable('#jobTable')) {
-                    jobTable = initializeDataTable();
+                    jobTable = initializeJobTable();
                 } else {
                     jobTable.clear();
                 }
@@ -225,7 +228,7 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
                             </div>
 
                         `).join('')
-                            : 'No items';
+                            : 'No items';``
 
                         const actionDropdown = `
                             <span>
@@ -251,8 +254,8 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
                             job.jobNumber || '',
                             job.jobDate || '',
                             job.jobType || '',
-                            job.invoiceNumber || '',
-                            job.invoiceDate || '',
+                            `${job.invoiceNumber || ''}<br>${job.invoiceDate || ''}`,
+                            `${job.customerName || ''}<br>${job.customerPhone || ''}`,
                             itemsHtml,
                             getStatusBadge(job.status),
                             actionDropdown
@@ -330,8 +333,120 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
         printWindow.document.close();
     }
 
+    const repTable = $('#repTable').DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        destroy: true,
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excel',
+                text: '<i class="la la-file-excel-o"></i>',
+                titleAttr: 'Export to Excel'
+            },
+            {
+                extend: 'print',
+                text: '<i class="la la-print"></i>',
+                titleAttr: 'Print'
+            }
+        ],
+        initComplete: function () {
+            this.api().columns().every(function () {
+                var column = this;
+                var title = $(column.footer()).text();
 
+                $(column.footer()).html('<input type="text" placeholder="' + title + '"/>');
 
-    initializeDataTable();
+                $('input', column.footer()).on('keyup change clear', function () {
+                    if (column.search() !== this.value) {
+                        column.search(this.value).draw();
+                    }
+                });
+            });
+        }
+    });
+    const defTable = $('#defTable').DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        destroy: true,
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excel',
+                text: '<i class="la la-file-excel-o"></i>',
+                titleAttr: 'Export to Excel'
+            },
+            {
+                extend: 'print',
+                text: '<i class="la la-print"></i>',
+                titleAttr: 'Print'
+            }
+        ],
+        initComplete: function () {
+            this.api().columns().every(function () {
+                var column = this;
+                var title = $(column.footer()).text();
+
+                $(column.footer()).html('<input type="text" placeholder="' + title + '"/>');
+
+                $('input', column.footer()).on('keyup change clear', function () {
+                    if (column.search() !== this.value) {
+                        column.search(this.value).draw();
+                    }
+                });
+            });
+        }
+    });
+    $('.buttons-print, .buttons-excel').addClass('btn btn-primary mr-1');
+
+    function getReplacementNotes(){
+        $http.get(APP_CONFIG.apiBase + `/job/replacementNotes`)
+            .then(function (res){
+                const data =res.data;
+                if (Array.isArray(data)) {
+                    data.forEach(function (note) {
+                        repTable.row.add([
+                            note.repNumber || '',
+                            note.replacementDate || '',
+                            `${note.defectItemDescription || ''}<br> ${note.defectItemSerial || ''}`,
+                            `${note.replacedItemDescription || ''}<br> ${note.replacedItemSerial}`,
+                            `${note.customerName || ''}<br>${note.customerPhone || ''}`
+                        ]);
+                    });
+                }
+                repTable.draw();
+            },function (err){})
+    }
+
+    function getDefectItems(){
+        $http.get(APP_CONFIG.apiBase + `/job/defectItems`)
+            .then(function (res){
+                const data =res.data;
+                if ($.fn.DataTable.isDataTable('#defTable')) {
+                    $('#defTable').DataTable().clear();
+                }
+                if (Array.isArray(data)) {
+                    data.forEach(function (def) {
+                        defTable.row.add([
+                            `${def.description || ''}<br>${def.serial || ''}`,
+                            def.defectiveDetails || '',
+                            `${def.customerName || ''}<br> ${def.customerPhone || ''}`,
+                            def.returnedDate || '',
+                            def.remainingSupplierWarranty || '',
+                            def.remainingSellerWarranty || '',
+                            def.warrantyClaimed
+                                ? '<span style="background-color: #51A351; color: white; padding: 3px 8px; border-radius: 4px; font-weight: 600;">Replaced to the customer</span>'
+                                : '<span style="background-color: #FFC107; color: white; padding: 3px 8px; border-radius: 4px; font-weight: 600;">Pending</span>'
+                        ]);
+                    });
+                }
+                defTable.draw();
+            },function (err){})
+    }
+
+    getDefectItems();
+    getReplacementNotes();
     getJobs();
 });

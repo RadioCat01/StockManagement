@@ -262,6 +262,8 @@
                     </li>
                     <li><a class="menu-item" href="${pageContext.request.contextPath}/customerJobs">Job Management</a>
                     </li>
+                    <li><a class="menu-item" href="${pageContext.request.contextPath}/company">Company Info</a>
+                    </li>
                 </ul>
             </li>
             <li class=" nav-item"><a href="#"><i class="ft-printer"></i><span class="menu-title" data-i18n="">Reporting</span></a>

@@ -45,6 +45,7 @@ angular.module('Stock').controller('POSController', function($scope, $http, $tim
         $http.get(APP_CONFIG.apiBase + `/sales/getSaleItems`)
             .then(function (res){
                 $scope.productDTOs= res.data;
+                console.log($scope.productDTOs);
             },function (err){
                 console.log(err)
             })
@@ -53,7 +54,6 @@ angular.module('Stock').controller('POSController', function($scope, $http, $tim
         $http.get(APP_CONFIG.apiBase + `/sales/getCustomers`)
             .then(function (res){
                 $scope.customers= res.data;
-                console.log($scope.customers);
             },function (err){
                 console.log(err)
             })
@@ -155,10 +155,6 @@ angular.module('Stock').controller('POSController', function($scope, $http, $tim
     $scope.updateFilteredCustomers = function(directQuery) {
         const query = (directQuery || '').toLowerCase().trim();
 
-        console.log("Direct query parameter:", directQuery);
-        console.log("$scope.customerSearchQuery:", $scope.customerSearchQuery);
-        console.log("Processed query:", query);
-
         if (!query) {
             $scope.filteredCustomersList = [];
             return;
@@ -169,15 +165,9 @@ angular.module('Stock').controller('POSController', function($scope, $http, $tim
             const phoneMatch = cust.phone && cust.phone.includes(query);
             const result = nameMatch || phoneMatch;
 
-            console.log("Testing customer:", cust.name);
-            console.log("Name match:", nameMatch);
-            console.log("Phone match:", phoneMatch);
-            console.log("Final result:", result);
-
             return result;
         });
 
-        console.log("Found matches:", $scope.filteredCustomersList.length);
         if (!$scope.$$phase) {
             $scope.$apply();
         }
@@ -270,7 +260,6 @@ angular.module('Stock').controller('POSController', function($scope, $http, $tim
                 allItems.push(enhancedService);
             });
         }
-        console.log(allItems);
         return allItems;
     };
 

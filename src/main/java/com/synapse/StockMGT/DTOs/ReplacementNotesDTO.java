@@ -15,4 +15,6 @@ public class ReplacementNotesDTO {
     private String defectItemSerial;
     private String replacedItemDescription;
     private String replacedItemSerial;
+    private String customerName;
+    private String customerPhone;
 }

@@ -5,6 +5,8 @@ import com.synapse.StockMGT.CustomFields.CustomFields_customer;
 import com.synapse.StockMGT.CustomFields.CustomFields_jobs;
 import com.synapse.StockMGT.Enums.JobStatus;
 import com.synapse.StockMGT.Enums.JobTypes;
+import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
+import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import lombok.*;
 
 import javax.persistence.*;
@@ -18,9 +20,9 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class JobNotes extends TenantAwareSupperClass{
+@Getter
+@Setter
+public class JobNotes{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer jobNotesId;
@@ -47,7 +49,17 @@ public class JobNotes extends TenantAwareSupperClass{
     @Builder.Default
     private List<CustomFields_jobs> customFields = new ArrayList<>();
 
+    private String customerName;
+    private String customerPhone;
+
     @OneToOne
-    @JsonBackReference
     private ReplacementNote replacementNote;
+
+    @ManyToOne
+    @JoinColumn(name = "companyId")
+    private Company company;
+
+    @ManyToOne
+    @JoinColumn(name = "subComId")
+    private SubCompany subCompany;
 }

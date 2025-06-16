@@ -30,7 +30,7 @@ public class ManagementController {
     @GetMapping("/cat")
     public ResponseEntity<?> cat() {
         controllerLogger.info("Management Controller Called.");
-        return ResponseEntity.ok(categoryRepo.findAll());
+        return ResponseEntity.ok(managementService.getCategories());
     }
 
     @GetMapping("/stores")

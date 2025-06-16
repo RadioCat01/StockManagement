@@ -1,5 +1,8 @@
 package com.synapse.StockMGT.Models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
+import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import lombok.*;
 
 import javax.persistence.*;
@@ -14,9 +17,9 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class Invoice extends TenantAwareSupperClass{
+@Getter
+@Setter
+public class Invoice{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer invoiceId;
@@ -44,4 +47,12 @@ public class Invoice extends TenantAwareSupperClass{
     @JoinColumn(name = "invoiceId")
     @Builder.Default
     private List<Services> services = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "companyId")
+    private Company company;
+
+    @ManyToOne
+    @JoinColumn(name = "subComId")
+    private SubCompany subCompany;
 }

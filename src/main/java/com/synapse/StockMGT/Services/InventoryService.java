@@ -5,6 +5,7 @@ import com.synapse.StockMGT.DTOs.InventoryDTO;
 import com.synapse.StockMGT.DTOs.ItemHistoryResDTO;
 import com.synapse.StockMGT.DTOs.TransferReqDTO;
 import com.synapse.StockMGT.Models.*;
+import com.synapse.StockMGT.Models.CompanyHierarchy.Store;
 import com.synapse.StockMGT.Repos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

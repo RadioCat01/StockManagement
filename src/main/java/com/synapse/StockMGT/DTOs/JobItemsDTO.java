@@ -19,5 +19,8 @@ public class JobItemsDTO {
     private String remainingSupplierWarranty;
     private boolean isWarrantyClaimed;
     private ReplacedItemDTO replacedItem;
+    private String customerName;
+    private String customerPhone;
+    private LocalDate returnedDate;
 }
 

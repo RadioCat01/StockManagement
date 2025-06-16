@@ -1,8 +1,11 @@
 package com.synapse.StockMGT.Models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.synapse.StockMGT.CustomFields.CustomFields_item;
+import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
+import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import lombok.*;
 
 import javax.persistence.*;
@@ -12,11 +15,11 @@ import java.util.List;
 @Entity
 @Table(name = "itemInfo")
 @Builder
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class ItemInfo extends TenantAwareSupperClass{
+public class ItemInfo{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer infoId;
@@ -41,4 +44,12 @@ public class ItemInfo extends TenantAwareSupperClass{
     @JoinColumn(name = "customId")
     @Builder.Default
     private List<CustomFields_item> customFields = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "companyId")
+    private Company company;
+
+    @ManyToOne
+    @JoinColumn(name = "subComId")
+    private SubCompany subCompany;
 }

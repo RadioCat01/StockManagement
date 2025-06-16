@@ -4,7 +4,11 @@ import com.synapse.StockMGT.CustomFields.CustomFields_grn;
 import com.synapse.StockMGT.CustomFields.CustomFields_item;
 import com.synapse.StockMGT.CustomFields.CustomFields_supplier;
 import com.synapse.StockMGT.DTOs.*;
+import com.synapse.StockMGT.DTOs.CategotyDTO.CategoryDTO;
+import com.synapse.StockMGT.DTOs.CategotyDTO.ItemInfoDTO;
 import com.synapse.StockMGT.Models.*;
+import com.synapse.StockMGT.Models.CompanyHierarchy.Store;
+import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import com.synapse.StockMGT.Repos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -218,6 +222,7 @@ public class ManagementService {
                     .lastUpdate(LocalDate.now())
                     .currentPosition(store.getSubCompany().getSubCompanyName())
                     .stockType(itemDTO.getStockType())
+                    .supplierGRN(savingGRN)
                     .build();
             newItems.add(newItem);
         }
@@ -308,4 +313,104 @@ public class ManagementService {
         }
         return stores;
     }
+
+    public List<CategoryDTO> getCategories() {
+        List<Category> categories = categoryRepo.findAll();
+        List<CategoryDTO> categoriesDTO = new ArrayList<>();
+
+        for (Category category : categories) {
+            CategoryDTO categoryDTO = new CategoryDTO();
+            categoryDTO.setCategoryId(category.getCategoryId());
+            categoryDTO.setCategoryName(category.getCategoryName());
+
+            List<com.synapse.StockMGT.DTOs.CategotyDTO.BrandDTO> brandDTOList = new ArrayList<>();
+
+            for (Brand brand : category.getBrands()) {
+                com.synapse.StockMGT.DTOs.CategotyDTO.BrandDTO brandDTO = new com.synapse.StockMGT.DTOs.CategotyDTO.BrandDTO();
+                brandDTO.setBrandId(brand.getBrandId());
+                brandDTO.setBrandName(brand.getBrandName());
+
+                // Populate ItemInfos
+                List<ItemInfoDTO> itemInfoDTOList = new ArrayList<>();
+                for (ItemInfo itemInfo : brand.getItemInfos()) {
+                    ItemInfoDTO itemInfoDTO = new ItemInfoDTO();
+                    itemInfoDTO.setInfoId(itemInfo.getInfoId());
+                    itemInfoDTO.setItemCode(itemInfo.getItemCode());
+                    itemInfoDTO.setItemDescription(itemInfo.getItemDescription());
+
+                    // Populate Items
+                    List<ItemDTO> itemDTOList = new ArrayList<>();
+                    for (Item item : itemInfo.getItems()) {
+                        ItemDTO itemDTO = new ItemDTO();
+                        itemDTO.setItemCode(item.getItemInfo().getItemCode());
+                        itemDTO.setItemCost(item.getCost());
+                        itemDTO.setDealerPrice(item.getDealerPrice());
+                        itemDTO.setRetailPrice(item.getRetailPrice());
+                        itemDTO.setStockType(item.getStockType());
+
+                        // Populate IDs safely
+                        itemDTO.setCategoryId(category.getCategoryId());
+                        itemDTO.setBrandId(brand.getBrandId());
+                        itemDTO.setSupplierId(item.getSupplier() != null ? item.getSupplier().getSupplierId() : 0);
+                        itemDTO.setStore(item.getStore() != null ? item.getStore().getStoreId() : 0);
+
+                        // Populate GRN-related fields
+                        if (item.getSupplierGRN() != null) {
+                            SupplierGRN grn = item.getSupplierGRN();
+                            itemDTO.setWarranty(grn.getWarranty());
+                            itemDTO.setSellerWarranty(grn.getSellerWarranty());
+                            itemDTO.setQuantity(grn.getQuantity());
+                            itemDTO.setPaymentStatus(grn.getPaymentStatus());
+                            itemDTO.setSupplierPayment(grn.getSupplierPayment());
+                            itemDTO.setSupplierInvoiceNumber(grn.getSupplierInvoiceNumber());
+                            itemDTO.setGrnDate(grn.getGrnDate() != null ? grn.getGrnDate().toString() : null);
+                            itemDTO.setSerialNumbers(grn.getSerialNumberList() != null ?
+                                    Arrays.asList(grn.getSerialNumberList().split(",")) : new ArrayList<>());
+                            itemDTO.setHasSerialNumbers(grn.getSerialNumberList() != null && !grn.getSerialNumberList().isBlank());
+                            itemDTO.setCustomFields(grn.getCustomFields());
+                        }
+
+                        itemDTOList.add(itemDTO);
+                    }
+
+                    itemInfoDTO.setItems(itemDTOList);
+                    itemInfoDTOList.add(itemInfoDTO);
+                }
+
+                // Populate GRNs
+                List<SupplierGRNDTO> grnDTOList = new ArrayList<>();
+                for (SupplierGRN grn : brand.getSupplierGRNs()) {
+                    SupplierGRNDTO grnDTO = new SupplierGRNDTO();
+                    grnDTO.setCategoryName(grn.getCategoryName());
+                    grnDTO.setBrandName(grn.getBrandName());
+                    grnDTO.setProductDescription(grn.getProductDescription());
+                    grnDTO.setWarranty(grn.getWarranty());
+                    grnDTO.setQuantity(grn.getQuantity());
+                    grnDTO.setCost(grn.getCost());
+                    grnDTO.setDealerPrice(grn.getDealerPrice());
+                    grnDTO.setRetailPrice(grn.getRetailPrice());
+                    grnDTO.setSupplierPayment(grn.getSupplierPayment());
+                    grnDTO.setPaymentStatus(grn.getPaymentStatus());
+                    grnDTO.setSerialNumbers(grn.getSerialNumberList());
+                    grnDTO.setStoreId(grn.getStore());
+                    grnDTO.setItems(grn.getItems());
+                    grnDTO.setGrnDate(grn.getGrnDate());
+                    grnDTO.setSupplierInvoice(grn.getSupplierInvoiceNumber());
+
+                    grnDTOList.add(grnDTO);
+                }
+
+                brandDTO.setItemInfos(itemInfoDTOList);
+                brandDTO.setSupplierGRNs(grnDTOList);
+
+                brandDTOList.add(brandDTO);
+            }
+
+            categoryDTO.setBrands(brandDTOList);
+            categoriesDTO.add(categoryDTO);
+        }
+
+        return categoriesDTO;
+    }
+
 }

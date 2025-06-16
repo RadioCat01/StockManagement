@@ -1,7 +1,11 @@
 package com.synapse.StockMGT.Models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.synapse.StockMGT.CustomFields.CustomFields_grn;
 import com.synapse.StockMGT.CustomFields.CustomFields_item;
+import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
+import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import lombok.*;
 
 import javax.persistence.*;
@@ -11,12 +15,12 @@ import java.util.List;
 
 @Entity
 @Table(name = "supplierGRN")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class SupplierGRN extends TenantAwareSupperClass{
+public class SupplierGRN{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer supplierGRNId;
@@ -43,12 +47,20 @@ public class SupplierGRN extends TenantAwareSupperClass{
     private int store;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "GRNItemId")
     @Builder.Default
+    @JsonManagedReference(value = "grn")
     private List<Item> items = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "customId")
     @Builder.Default
     private List<CustomFields_grn> customFields = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "companyId")
+    private Company company;
+
+    @ManyToOne
+    @JoinColumn(name = "subComId")
+    private SubCompany subCompany;
 }

@@ -42,6 +42,8 @@ public class JobService {
                 .invoicedDate(job.getInvoiceDate())
                 .invoiceNumber(job.getInvoiceNumber())
                 .status(JobStatus.PENDING)
+                .customerName(job.getCustomerName())
+                .customerPhone(job.getCustomerPhone())
                 .build();
         note.setJobItems(job.getJobItems().stream().map(
                 item -> JobItem.builder()
@@ -115,6 +117,8 @@ public class JobService {
                     .jobType(job.getJobType())
                     .invoiceNumber(job.getInvoiceNumber())
                     .invoiceDate(job.getInvoicedDate())
+                    .customerName(job.getCustomerName())
+                    .customerPhone(job.getCustomerPhone())
                     .jobItems(job.getJobItems().stream().map(
                             item -> JobItemsDTO.builder()
                                     .description(item.getDescription())
@@ -212,6 +216,8 @@ public class JobService {
                             .repNumber(generateJobNumber(job))
                             .replacementDate(LocalDate.now())
                             .jobNotes(note)
+                            .customerName(job.getCustomerName())
+                            .customerPhone(job.getCustomerPhone())
                             .build());
             note.setReplacementNote(repNote);
             jobNoteRepo.save(note);
@@ -234,6 +240,8 @@ public class JobService {
                                         .defectItemSerial(jobItem.getSerial())
                                         .replacedItemDescription(jobItem.getReplacedItem().getDescription())
                                         .replacedItemSerial(jobItem.getReplacedItem().getSerialNumber())
+                                        .customerName(repNote.getCustomerName())
+                                        .customerPhone(repNote.getCustomerPhone())
                                         .build()
                                 )
                 )
@@ -241,14 +249,18 @@ public class JobService {
     }
 
     public List<JobItemsDTO> getDefects() {
-        return jobItemRepo.findAll().stream().map(jobItem ->JobItemsDTO.builder()
-                .description(jobItem.getDescription())
-                .serial(jobItem.getSerial())
-                .defectiveDetails(jobItem.getDefectiveDetails())
-                .barcodeImage(jobItem.getBarCodeImage())
-                .isWarrantyClaimed(jobItem.isWarrantyClaimed())
-                .remainingSupplierWarranty(jobItem.getRemainingSupplierWarranty())
-                .remainingSellerWarranty(jobItem.getRemainingSellerWarranty())
-                .build()).toList();
+        return jobNoteRepo.findAll().stream().flatMap(jobNote ->jobNote
+                .getJobItems().stream().map(jobItem -> JobItemsDTO.builder()
+                        .description(jobItem.getDescription())
+                        .serial(jobItem.getSerial())
+                        .defectiveDetails(jobItem.getDefectiveDetails())
+                        .barcodeImage(jobItem.getBarCodeImage())
+                        .isWarrantyClaimed(jobItem.isWarrantyClaimed())
+                        .remainingSupplierWarranty(jobItem.getRemainingSupplierWarranty())
+                        .remainingSellerWarranty(jobItem.getRemainingSellerWarranty())
+                        .customerName(jobNote.getCustomerName())
+                        .customerPhone(jobNote.getCustomerPhone())
+                        .returnedDate(jobNote.getJobDate())
+                        .build())).toList();
     }
 }

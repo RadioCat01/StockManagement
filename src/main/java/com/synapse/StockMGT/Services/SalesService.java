@@ -3,6 +3,9 @@ package com.synapse.StockMGT.Services;
 import com.synapse.StockMGT.CustomFields.CustomFields_customer;
 import com.synapse.StockMGT.DTOs.*;
 import com.synapse.StockMGT.Models.*;
+import com.synapse.StockMGT.Models.CompanyHierarchy.PosTerminal;
+import com.synapse.StockMGT.Models.CompanyHierarchy.Store;
+import com.synapse.StockMGT.Models.CompanyHierarchy.StoreFront;
 import com.synapse.StockMGT.Repos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,42 +19,49 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SalesService {
-    private final BrandRepo brandRepo;
     private final SupplierGRNRepo supplierGRNRepo;
     private final SalesRepo salesRepo;
     private final CustomerRepo customerRepo;
-    private final SoldProductRepo soldProductRepo;
-    private final ItemInfoRepo itemInfoRepo;
     private final ItemRepo itemRepo;
     private final InvoiceRepo invoiceRepo;
-    private final ServiceRepo serviceRepo;
     private final ItemHistoryRepo itemHistoryRepo;
     private final StoreRepo storeRepo;
+    private final PosTerminalRepo posTerminalRepo;
 
     public List<SaleItemDTO> getItems() {
         List<SaleItemDTO> salesItems = new ArrayList<>();
-        List<SupplierGRN> suppliers = supplierGRNRepo.findAll();
+        int posTerminalID = 2;
+        PosTerminal pos = posTerminalRepo.findById(posTerminalID).orElseThrow(() -> new RuntimeException("PosTerminal not found"));
 
-        for (SupplierGRN grn : suppliers) {
-            Map<Integer, List<Item>> itemsByStore = grn.getItems().stream()
-                    .collect(Collectors.groupingBy(item -> item.getStore().getStoreId()));
+        List<Item> items = pos.getCounter().getStoreFront()
+                .getStore().stream().flatMap(store -> store.getItems().stream())
+                .toList();
 
-            for (Map.Entry<Integer, List<Item>> entry : itemsByStore.entrySet()) {
-                Integer storeId = entry.getKey();
-                List<Item> itemsInStore = entry.getValue();
+        Map<String, List<Item>> groupedItems = items.stream()
+                .filter(item -> item.getSupplierGRN() != null && item.getStore() != null)
+                .collect(Collectors.groupingBy(item ->
+                        item.getStore().getStoreId() + "-" + item.getSupplierGRN().getSupplierGRNId()
+                ));
 
-                salesItems.add(SaleItemDTO.builder()
-                        .brandName(grn.getBrandName())
-                        .itemCode(grn.getItemCode())
-                        .description(grn.getProductDescription())
-                        .dealerPrice(grn.getDealerPrice())
-                        .retailPrice(grn.getRetailPrice())
-                        .quantity(itemsInStore.size())
-                        .supplierGRNID(grn.getSupplierGRNId())
-                        .storeId(storeId)
-                        .build());
-            }
+        for (Map.Entry<String, List<Item>> entry : groupedItems.entrySet()) {
+            List<Item> groupedItemList = entry.getValue();
+            Item representative = groupedItemList.get(0);
+
+            SupplierGRN grn = representative.getSupplierGRN();
+            Store store = representative.getStore();
+
+            salesItems.add(SaleItemDTO.builder()
+                    .brandName(grn.getBrandName())
+                    .itemCode(grn.getItemCode())
+                    .description(grn.getProductDescription())
+                    .dealerPrice(grn.getDealerPrice())
+                    .retailPrice(grn.getRetailPrice())
+                    .quantity(groupedItemList.size())
+                    .supplierGRNID(grn.getSupplierGRNId())
+                    .storeId(store.getStoreId())
+                    .build());
         }
+        System.out.println("salesItems = " + salesItems);
         return salesItems;
     }
 

@@ -55,7 +55,7 @@
         <ul class="nav navbar-nav float-right">
           <li class="dropdown dropdown-user nav-item"><a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">             <span class="ft ft-user"></span></a>
             <div class="dropdown-menu dropdown-menu-right">
-              <div class="arrow_box_right"><a class="dropdown-item" href="#"><span class="avatar avatar-online"><img src="../../../app-assets/images/portrait/small/avatar-s-19.png" alt="avatar"><span class="user-name text-bold-700 ml-1">John Doe</span></span></a>
+              <div class="${pageContext.request.contextPath}/arrow_box_right"><a class="dropdown-item" href="#"><span class="${pageContext.request.contextPath}/avatar avatar-online"><img src="../../../app-assets/images/portrait/small/avatar-s-19.png" alt="${pageContext.request.contextPath}/avatar"><span class="user-name text-bold-700 ml-1">John Doe</span></span></a>
                 <div class="dropdown-divider"></div><a class="dropdown-item" href="user-profile.html"><i class="ft-user"></i> Edit Profile</a><a class="dropdown-item" href="email-application.html"><i class="ft-mail"></i> My Inbox</a><a class="dropdown-item" href="project-summary.html"><i class="ft-check-square"></i> Task</a><a class="dropdown-item" href="chat-application.html"><i class="ft-message-square"></i> Chats</a>
                 <div class="dropdown-divider"></div><a class="dropdown-item" href="login.html"><i class="ft-power"></i> Logout</a>
               </div>
@@ -93,13 +93,15 @@
           </li>
           <li class="active"><a class="menu-item" href="${pageContext.request.contextPath}/customerJobs">Job Management</a>
           </li>
+          <li><a class="menu-item" href="${pageContext.request.contextPath}/company">Company Info</a>
+          </li>
         </ul>
       </li>
       <li class=" nav-item"><a href="#"><i class="ft-printer"></i><span class="menu-title" data-i18n="">Reporting</span></a>
         <ul class="menu-content">
           <li><a class="menu-item" href="${pageContext.request.contextPath}/grnSummery">GRN Summery</a>
           </li>
-          <li><a class="menu-item" href="#"><span class="menu-title" data-i18n="">Sales Summery</span></a>
+          <li ><a class="menu-item" href="${pageContext.request.contextPath}/sales"><span class="menu-title" data-i18n="">Sales Summery</span></a>
           </li>
         </ul>
       </li>
@@ -110,7 +112,7 @@
 
 <!-- //////////////////////////////////////////////////////////////////////////// -->
 <!-- Cont -->
-<div class="app-content content">
+<div class="${pageContext.request.contextPath}/app-content content">
   <div class="content-wrapper">
     <div class="content-wrapper-before"></div>
     <div class="content-header row">
@@ -149,8 +151,8 @@
                           <th>Job #</th>
                           <th>Date</th>
                           <th>Type</th>
-                          <th>Invoice #</th>
-                          <th>Invoice Date</th>
+                          <th>Invoice Info</th>
+                          <th>Customer Info</th>
                           <th>Item Details</th>
                           <th>Status</th>
                           <th>Actions</th>
@@ -164,10 +166,108 @@
                           <th>Job #</th>
                           <th>Date</th>
                           <th>Type</th>
-                          <th>Invoice #</th>
-                          <th>Invoice Date</th>
+                          <th>Invoice Info</th>
+                          <th>Customer Info</th>
                           <th>Item Details</th>
                           <th>Status</th>
+                        </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h4 class="card-title">Warranty Replacement Notes</h4>
+                    <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                    <div class="heading-elements">
+                      <ul class="list-inline mb-0">
+                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                        <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
+                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                        <li><a data-action="close"><i class="ft-x"></i></a></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="card-content collapse show">
+                    <div class="card-body">
+                      <p class="card-text">Contains details about warranty replacements.</p>
+                      <table id="repTable" class="table table-white-space table-bordered">
+                        <thead>
+                        <tr>
+                          <th>Replacement #</th>
+                          <th>Replaced Date</th>
+                          <th>Defective Item</th>
+                          <th>Replacement</th>
+                          <th>Customer Info</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                          <th>Replacement #</th>
+                          <th>Replaced Date</th>
+                          <th>Defective Item</th>
+                          <th>Replacement</th>
+                          <th>Customer Info</th>
+                        </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h4 class="card-title">Defect Items in Inventory</h4>
+                    <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                    <div class="heading-elements">
+                      <ul class="list-inline mb-0">
+                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                        <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
+                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                        <li><a data-action="close"><i class="ft-x"></i></a></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="card-content collapse show">
+                    <div class="card-body">
+                      <p class="card-text">Contains details about warranty replacements.</p>
+                      <table id="defTable" class="table table-white-space table-bordered">
+                        <thead>
+                        <tr>
+                          <th>Item Info</th>
+                          <th>Defective Details</th>
+                          <th>Customer Info</th>
+                          <th>Returned Date</th>
+                          <th>Remaining Supplier Warranty</th>
+                          <th>Remaining Seller Warranty</th>
+                          <th>Replacement Status</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                          <th>Item Info</th>
+                          <th>Defective Details</th>
+                          <th>Customer Info</th>
+                          <th>Returned Date</th>
+                          <th>Remaining Supplier Warranty</th>
+                          <th>Remaining Seller Warranty</th>
+                          <th>Replacement Status</th>
                         </tr>
                         </tfoot>
                       </table>
@@ -663,6 +763,9 @@
 <script src="${pageContext.request.contextPath}/app-assets/vendors/js/tables/jquery.dataTables.min.js" type="text/javascript"></script>
 <script src="${pageContext.request.contextPath}/app-assets/vendors/js/tables/datatable/dataTables.bootstrap4.min.js" type="text/javascript"></script>
 <script src="${pageContext.request.contextPath}/app-assets/vendors/js/forms/icheck/icheck.min.js" type="text/javascript"></script>
+<script src="${pageContext.request.contextPath}/app-assets/vendors/js/tables/datatable/datatables.min.js" type="text/javascript"></script>
+<script src="${pageContext.request.contextPath}/app-assets/vendors/js/tables/datatable/dataTables.buttons.min.js" type="text/javascript"></script>
+<script src="${pageContext.request.contextPath}/app-assets/vendors/js/tables/buttons.flash.min.js" type="text/javascript"></script>
 
 <script src="${pageContext.request.contextPath}/app-assets/js/core/app-menu.js" type="text/javascript"></script>
 <script src="${pageContext.request.contextPath}/app-assets/js/core/app.js" type="text/javascript"></script>

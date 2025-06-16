@@ -13,7 +13,7 @@
         <div class="navbar-header">
             <ul class="nav navbar-nav flex-row">
                 <li class="nav-item mobile-menu d-md-none mr-auto"><a class="nav-link nav-menu-main menu-toggle hidden-xs" href="#"><i class="ft-menu font-large-1"></i></a></li>
-                <li class="nav-item"><a class="navbar-brand" href="index.html"><img class="brand-logo" alt="Chameleon admin logo" src="${pageContext.request.contextPath}/resources/images/USCOM.png">
+                <li class="nav-item"><a class="navbar-brand" href="index.html"><img class="brand-logo" alt="Chameleon admin logo" src="${pageContext.request.contextPath}/resources/images/USCOM.png"></a></li>
                 <li class="nav-item d-md-none"><a class="nav-link open-navbar-container" data-toggle="collapse" data-target="#navbar-mobile"><i class="la la-ellipsis-v"></i></a></li>
             </ul>
         </div>
@@ -63,6 +63,8 @@
                     </li>
                     <li><a class="menu-item" href="${pageContext.request.contextPath}/customerJobs">Job Management</a>
                     </li>
+                    <li><a class="menu-item" href="${pageContext.request.contextPath}/company">Company Info</a>
+                    </li>
                 </ul>
             </li>
             <li class=" nav-item"><a href="#"><i class="ft-printer"></i><span class="menu-title" data-i18n="">Reporting</span></a>
@@ -98,14 +100,14 @@
                         </div>
                         <div class="d-flex px-3 align-items-center">
                             <div class="col-md-2 p-0">
-                                <label for="storeId">Select Store:</label>
+                                <label for="storeId">Select Store/ Warehouse:</label>
                                 <select ng-model="selectedStore"
                                         ng-options="store.storeId as store.storeName for store in stores"
                                         class="form-control mb-2"
                                         ng-change="onStoreSelect()"
                                         id="storeId"
                                         required>
-                                    <option value="" disabled>Select a store</option>
+                                    <option value="" disabled>Select a store/ Warehouse</option>
                                 </select>
                                 <div class="invalid-feedback">Please select a store.</div>
                             </div>

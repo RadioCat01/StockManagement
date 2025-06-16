@@ -19,6 +19,8 @@ public class JobResDTO {
     private LocalDate invoiceDate;
     private String invoiceNumber;
     private JobStatus status;
+    private String customerName;
+    private String customerPhone;
 
     private List<JobItemsDTO> jobItems;
 }

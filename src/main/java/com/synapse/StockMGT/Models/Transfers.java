@@ -1,6 +1,9 @@
 package com.synapse.StockMGT.Models;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
+import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import lombok.*;
 
 import javax.persistence.*;
@@ -11,9 +14,9 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class Transfers extends TenantAwareSupperClass{
+@Getter
+@Setter
+public class Transfers{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer transferId;
@@ -27,4 +30,12 @@ public class Transfers extends TenantAwareSupperClass{
     private String serials;
     private String transferFrom;
     private String transferTo;
+
+    @ManyToOne
+    @JoinColumn(name = "companyId")
+    private Company company;
+
+    @ManyToOne
+    @JoinColumn(name = "subComId")
+    private SubCompany subCompany;
 }

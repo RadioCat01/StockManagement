@@ -31,7 +31,7 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
     };
     $scope.selectItemInfo= function (itemInfo){
        $scope.itemQuantity = itemInfo.items.filter(item =>
-            item.store.storeId === $scope.fromSelectedStore
+            item.store === $scope.fromSelectedStore
         ).length;
        $scope.bulkTransferDTO.itemCode=$scope.selectedItemInfo.itemCode;
     }
@@ -263,6 +263,7 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
         $http.get(APP_CONFIG.apiBase + `/inventoryCont/inv`)
             .then(function (res) {
                 const allInventory = res.data;
+                console.log(allInventory);
                 if (!Array.isArray(allInventory)) {
                     return;
                 }
