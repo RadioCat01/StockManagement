@@ -9,7 +9,7 @@ import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "CompanyTemplates")
+@Table(name = "Templates")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,13 +24,11 @@ public class Templates {
     private String templateDescription;
 
     @OneToMany(mappedBy = "template")
-    private List<MandatoryFields>  companyMandatoryList;
-
-    @OneToMany(mappedBy = "template")
-    private List<CustomFields>   companyCustomList;
+    private List<TemplateFields> templateFields;
 
     @OneToMany(mappedBy = "template")
     private List<FieldData> actualData;
+
 
     @ManyToOne
     @JoinColumn(name = "companyId")

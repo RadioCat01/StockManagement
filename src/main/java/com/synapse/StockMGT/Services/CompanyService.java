@@ -1,13 +1,18 @@
 package com.synapse.StockMGT.Services;
 
 import com.synapse.StockMGT.DTOs.CompanyDTOs.*;
+import com.synapse.StockMGT.DTOs.FormDTOs.DataReqDTO;
 import com.synapse.StockMGT.Models.CompanyHierarchy.*;
+import com.synapse.StockMGT.Models.CustomFields.FieldData;
+import com.synapse.StockMGT.Models.CustomFields.TemplateFields;
+import com.synapse.StockMGT.Models.CustomFields.Templates;
 import com.synapse.StockMGT.Repos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,17 +27,33 @@ public class CompanyService {
     private final PosTerminalRepo posTerminalRepo;
     private final CashDrawerRepo cashDrawerRepo;
     private final ScannerRepo scannerRepo;
+    private final TemplateRepo templateRepo;
+    private final FieldDataRepo fieldDataRepo;
 
-    public CompanyDTO createCompany(CompanyDTO companyDTO) {
-        companyRepo.save(Company.builder()
-                        .companyName(companyDTO.getCompanyName())
-                        .companyAddress(companyDTO.getCompanyAddress())
-                        .companyPhone(companyDTO.getCompanyPhone())
-                        .companyEmail(companyDTO.getCompanyEmail())
-                        .businessRegNumber(companyDTO.getBusinessRegNumber())
-                        .businessLogo(companyDTO.getBusinessLogo())
-                        .build());
-        return companyDTO;
+    public Company createCompany(Map<String, Object> formData) {
+        Company company = Company.builder()
+                .companyName((String) formData.get("companyName"))
+                .build();
+        companyRepo.save(company);
+
+        Templates template = templateRepo.findByTemplateType("Company")
+                .orElseThrow();
+
+        List<TemplateFields> fields = template.getTemplateFields();
+        for (TemplateFields field : fields) {
+            if (formData.containsKey(field.getFieldName())) {
+                FieldData data = FieldData.builder()
+                        .template(template)
+                        .customField(field)
+                        .entityId(String.valueOf(company.getCompanyId()))
+                        .formType("Company")
+                        .fieldType(field.getFieldType())
+                        .fieldValue(String.valueOf(formData.get(field.getFieldName())))
+                        .build();
+                fieldDataRepo.save(data);
+            }
+        }
+        return company;
     }
 
     public SubCompanyDTO createSubCompany(SubCompanyDTO subCompanyDTO) {
@@ -43,8 +64,6 @@ public class CompanyService {
                         .subCompanyAddress(subCompanyDTO.getSubCompanyAddress())
                         .subCompanyPhone(subCompanyDTO.getSubCompanyPhone())
                         .subCompanyEmail(subCompanyDTO.getSubCompanyEmail())
-                        .subBusinessRegNumber(company.getBusinessRegNumber())
-                        .subBusinessLogo(company.getBusinessLogo())
                         .company(company)
                         .build());
         company.getSubCompanies().add(subCompany);
@@ -210,13 +229,27 @@ public class CompanyService {
 
 
     public List<CompanyDTO> getAllCompanies() {
-        return companyRepo.findAll().stream().map(company ->
-                CompanyDTO.builder()
-                        .companyName(company.getCompanyName())
-                        .companyId(company.getCompanyId())
-                        .build()
-        ).collect(Collectors.toList());
+        Templates template = templateRepo.findByTemplateType("Company")
+                .orElseThrow(() -> new RuntimeException("Company template not found"));
+
+        List<FieldData> allFieldData = fieldDataRepo.findByTemplate(template);
+
+        return companyRepo.findAll().stream().map(company -> {
+            Map<String, String> customFieldsMap = allFieldData.stream()
+                    .filter(fd -> String.valueOf(company.getCompanyId()).equals(fd.getEntityId()))
+                    .collect(Collectors.toMap(
+                            fd -> fd.getCustomField().getFieldName(),
+                            FieldData::getFieldValue
+                    ));
+
+            return CompanyDTO.builder()
+                    .companyId(company.getCompanyId())
+                    .companyName(customFieldsMap.getOrDefault("companyName", company.getCompanyName()))
+                    .customFields(customFieldsMap)
+                    .build();
+        }).collect(Collectors.toList());
     }
+
 
     public List<SubCompanyDTO> getAllSubCompanies() {
         return subCompanyRepo.findAll().stream().map(sub ->

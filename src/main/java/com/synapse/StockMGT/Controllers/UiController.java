@@ -72,6 +72,12 @@ public class UiController {
         return "CompanyMGT";
     }
 
+    @GetMapping("/formsPage")
+    public String froms() {
+        logger.info("froms Page Called.");
+        return "FormMGT";
+    }
+
     @GetMapping("/invoiceTemp")
     public String invoiceTemp(@RequestParam("invoiceId") int invoiceId, Model model) {
         logger.info("invoiceTemp Page Called.{}", invoiceId);

@@ -1,6 +1,7 @@
 package com.synapse.StockMGT.Controllers;
 
 import com.synapse.StockMGT.DTOs.CompanyDTOs.*;
+import com.synapse.StockMGT.DTOs.FormDTOs.DataReqDTO;
 import com.synapse.StockMGT.Services.CompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +17,8 @@ public class CompanyController {
     private final CompanyService companyService;
 
     @PostMapping("/com")
-    public ResponseEntity<?> createCompany(@RequestBody CompanyDTO companyDTO) {
-        return ResponseEntity.ok(companyService.createCompany(companyDTO));
+    public ResponseEntity<?> createCompany(@RequestBody DataReqDTO dto) {
+        return ResponseEntity.ok(companyService.createCompany(dto.getFormData()));
     }
 
     @PostMapping("/sub")

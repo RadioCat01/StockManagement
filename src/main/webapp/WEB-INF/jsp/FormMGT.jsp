@@ -3,9 +3,9 @@
 <head>
     <%@include file="../jspf/Headers.jspf"%>
     <title>Stock Management</title>
-    <script src="${pageContext.request.contextPath}/JS/Controllers/SalesReportController.js" type="text/javascript"></script>
+    <script src="${pageContext.request.contextPath}/JS/Controllers/FormsController.js" type="text/javascript"></script>
 </head>
-<body ng-controller="SalesReport" class="vertical-layout vertical-menu 2-columns   menu-expanded fixed-navbar" data-open="click" data-menu="vertical-menu" data-color="bg-gradient-x-purple-blue" data-col="2-columns">
+<body ng-controller="FormsCont" class="vertical-layout vertical-menu 2-columns   menu-expanded fixed-navbar" data-open="click" data-menu="vertical-menu" data-color="bg-gradient-x-purple-blue" data-col="2-columns">
 
 <!-- fixed-top-->
 <nav class="header-navbar navbar-expand-md navbar navbar-with-menu navbar-without-dd-arrow fixed-top navbar-dark">
@@ -66,7 +66,7 @@
                     </li>
                     <li><a class="menu-item" href="${pageContext.request.contextPath}/company">Company Info</a>
                     </li>
-                    <li><a class="menu-item" href="${pageContext.request.contextPath}/formsPage">Forms Info</a>
+                    <li class="active"><a class="menu-item" href="${pageContext.request.contextPath}/formsPage">Forms Info</a>
                     </li>
                 </ul>
             </li>
@@ -74,7 +74,7 @@
                 <ul class="menu-content">
                     <li><a class="menu-item" href="${pageContext.request.contextPath}/grnSummery">GRN Summery</a>
                     </li>
-                    <li class="active"><a class="menu-item" href="#"><span class="menu-title" data-i18n="">Sales Summery</span></a>
+                    <li ><a class="menu-item" href="${pageContext.request.contextPath}/sales"><span class="menu-title" data-i18n="">Sales Summery</span></a>
                     </li>
                 </ul>
             </li>
@@ -90,7 +90,7 @@
         <div class="content-wrapper-before"></div>
         <div class="content-header row">
             <div class="content-header-left col-md-4 col-12 mb-2">
-                <h3 class="content-header-title">Sales Information</h3>
+                <h3 class="content-header-title">Forms Information</h3>
             </div>
         </div>
         <div class="content-body">
@@ -98,36 +98,24 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Sales Report</h4>
+                            <h4 class="card-title">Forms Management</h4>
                             <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                         </div>
                         <div class="card-content collapse show">
                             <div class="card-body card-dashboard">
-                                <table id="inventoryTable" class="table table-striped table-bordered">
+                                <table class="table table-striped table-bordered">
                                     <thead>
                                     <tr>
-                                        <th>Sale Info</th>
-                                        <th>Serial Numbers</th>
-                                        <th>Invoice Number</th>
-                                        <th>PO Reference</th>
-                                        <th>Customer Info</th>
-                                        <th>Sold Date</th>
-                                        <th>Store Info</th>
+                                        <th>Form</th>
+                                        <th>Actions</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    </tbody>
-                                    <tfoot>
                                     <tr>
-                                        <th>Sale Info</th>
-                                        <th>Serial Numbers</th>
-                                        <th>Invoice Number</th>
-                                        <th>PO Reference</th>
-                                        <th>Customer Info</th>
-                                        <th>Sold Date</th>
-                                        <th>Store Info</th>
+                                        <td>Company</td>
+                                        <td><button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#formsModel"><i class="ft-plus"></i> </button></td>
                                     </tr>
-                                    </tfoot>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -136,8 +124,77 @@
             </div>
         </div>
     </div>
+
+    <!-- /////////// Company Model /////////// -->
+    <div class="modal fade text-left" id="formsModel" tabindex="-1" role="dialog" aria-labelledby="formsModelLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header btn-bg-gradient-x-purple-blue white">
+                    <h4 class="modal-title white" id="formsModelLabel">Manage Company Form</h4>
+                    <button type="button" class="close white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Existing Fields Table -->
+                    <table class="table table-bordered table-striped mt-4">
+                        <thead>
+                        <tr>
+                            <th>Field Name</th>
+                            <th>Field Type</th>
+                            <th>Is Mandatory</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="field in companyFields">
+                            <td>{{field.fieldName}}</td>
+                            <td>{{field.fieldType}}</td>
+                            <td>{{field.mandatory ? 'Yes' : 'No'}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="mb-3 p-3">
+                        <h5>Add New Field</h5>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>Field Name</label>
+                                <input type="text" class="form-control" ng-model="newField.fieldName" placeholder="Enter field name">
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Field Question</label>
+                                <input type="text" class="form-control" ng-model="newField.fieldQuestion" placeholder="Enter field name">
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Field Type</label>
+                                <select class="form-control" ng-model="newField.fieldType">
+                                    <option value="text">Text</option>
+                                    <option value="textarea">Textarea</option>
+                                    <option value="number">Number</option>
+                                    <option value="checkbox">Checkbox</option>
+                                    <option value="radio">Radio Button</option>
+                                    <option value="date">Date</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-2 d-flex align-items-center">
+                                <label class="mr-2 mb-0">Mandatory</label>
+                                <input type="checkbox" ng-model="newField.mandatory">
+                            </div>
+                            <div class="form-group col-md-2 d-flex align-items-end">
+                                <button class="btn btn-primary" ng-click="addCompanyField()">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
 </div>
-    <%@include file="../jspf/Footer.jspf" %>
+<%@include file="../jspf/Footer.jspf" %>
 
 </body>
 </html>

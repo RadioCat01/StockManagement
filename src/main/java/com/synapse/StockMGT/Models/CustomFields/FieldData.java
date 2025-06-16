@@ -5,7 +5,7 @@ import lombok.*;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "ComData")
+@Table(name = "FieldData")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,6 +19,10 @@ public class FieldData {
     @ManyToOne
     @JoinColumn(name = "templateId")
     private Templates template;
+
+    @ManyToOne
+    @JoinColumn(name = "fieldId")
+    private TemplateFields customField;
 
     private String entityId;
     private String formType;

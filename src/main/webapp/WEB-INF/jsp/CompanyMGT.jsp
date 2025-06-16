@@ -3,9 +3,9 @@
 <head>
   <%@include file="../jspf/Headers.jspf"%>
   <title>Stock Management</title>
-  <script src="${pageContext.request.contextPath}/JS/Controllers/SalesReportController.js" type="text/javascript"></script>
+  <script src="${pageContext.request.contextPath}/JS/Controllers/CompanyController.js" type="text/javascript"></script>
 </head>
-<body ng-controller="SalesReport" class="vertical-layout vertical-menu 2-columns   menu-expanded fixed-navbar" data-open="click" data-menu="vertical-menu" data-color="bg-gradient-x-purple-blue" data-col="2-columns">
+<body ng-controller="CompanyCont" class="vertical-layout vertical-menu 2-columns   menu-expanded fixed-navbar" data-open="click" data-menu="vertical-menu" data-color="bg-gradient-x-purple-blue" data-col="2-columns">
 
 <!-- fixed-top-->
 <nav class="header-navbar navbar-expand-md navbar navbar-with-menu navbar-without-dd-arrow fixed-top navbar-dark">
@@ -66,6 +66,8 @@
           </li>
           <li class="active"><a class="menu-item" href="${pageContext.request.contextPath}/company">Company Info</a>
           </li>
+          <li><a class="menu-item" href="${pageContext.request.contextPath}/formsPage">Forms Info</a>
+          </li>
         </ul>
       </li>
       <li class=" nav-item"><a href="#"><i class="ft-printer"></i><span class="menu-title" data-i18n="">Reporting</span></a>
@@ -88,7 +90,7 @@
     <div class="content-wrapper-before"></div>
     <div class="content-header row">
       <div class="content-header-left col-md-4 col-12 mb-2">
-        <h3 class="content-header-title">Sales Information</h3>
+        <h3 class="content-header-title">Company Management</h3>
       </div>
     </div>
     <div class="content-body">
@@ -96,11 +98,28 @@
         <div class="col-12">
           <div class="card">
             <div class="card-header">
-              <h4 class="card-title">Manage Company</h4>
+              <h4 class="card-title">Company Info</h4>
               <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
             </div>
             <div class="card-content collapse show">
               <div class="card-body card-dashboard">
+                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addCompanyDataModal">Add Company<i class="ft-plus"></i></button>
+                <table class="table table-bordered table-striped mt-4">
+                  <thead>
+                  <tr>
+                    <th>Company Name</th>
+                    <th>Address</th>
+                    <th>Phone</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="company in companies">
+                    <td>{{company.companyName}}</td>
+                    <td>{{company.companyAddress}}</td>
+                    <td>{{company.companyPhone}}</td>
+                  </tr>
+                  </tbody>
+                </table>
 
               </div>
             </div>
@@ -109,6 +128,70 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade text-left" id="addCompanyDataModal" tabindex="-1" role="dialog" aria-labelledby="addCompanyDataLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-header btn-bg-gradient-x-purple-blue white">
+          <h4 class="modal-title white" id="addCompanyDataLabel">Add Company</h4>
+          <button type="button" class="close white" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form name="companyForm">
+            <div class="form-row" ng-repeat="field in companyFields">
+
+              <div class="form-group col-md-12">
+                <label>{{field.fieldQuestion}} <span class="text-danger" ng-if="field.mandatory">*</span></label>
+
+                <!-- Text / Number / Date -->
+                <input ng-if="field.fieldType === 'text' || field.fieldType === 'number' || field.fieldType === 'date'"
+                       type="{{field.fieldType}}"
+                       class="form-control"
+                       ng-model="companyData[field.fieldName]"
+                       ng-required="field.mandatory">
+
+                <!-- Textarea -->
+                <textarea ng-if="field.fieldType === 'textarea'"
+                          class="form-control"
+                          ng-model="companyData[field.fieldName]"
+                          ng-required="field.mandatory"></textarea>
+
+                <!-- Checkbox -->
+                <input ng-if="field.fieldType === 'checkbox'"
+                       type="checkbox"
+                       class="form-check-input"
+                       ng-model="companyData[field.fieldName]">
+
+                <!-- Radio Button (example with Yes/No) -->
+                <div ng-if="field.fieldType === 'radio'">
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" ng-model="companyData[field.fieldName]" value="Yes">
+                    <label class="form-check-label">Yes</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" ng-model="companyData[field.fieldName]" value="No">
+                    <label class="form-check-label">No</label>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            {{companyData | json}}
+          </form>
+
+          <div class="mt-4">
+            <button class="btn btn-success" ng-click="saveCompanyData()">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
 </div>
 <%@include file="../jspf/Footer.jspf" %>
 
