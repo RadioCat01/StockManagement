@@ -103,20 +103,20 @@
             </div>
             <div class="card-content collapse show">
               <div class="card-body card-dashboard">
-                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addCompanyDataModal">Add Company<i class="ft-plus"></i></button>
+                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('company')">Add Company<i class="ft-plus"></i></button>
                 <table class="table table-bordered table-striped mt-4">
                   <thead>
                   <tr>
                     <th>Company Name</th>
-                    <th>Address</th>
-                    <th>Phone</th>
+                    <th ng-repeat="field in companyHeaders">{{ field }}</th>
                   </tr>
                   </thead>
                   <tbody>
-                  <tr ng-repeat="company in companies">
-                    <td>{{company.companyName}}</td>
-                    <td>{{company.companyAddress}}</td>
-                    <td>{{company.companyPhone}}</td>
+                  <tr ng-repeat="entity in companies">
+                    <td>{{ entity.displayName }}</td>
+                    <td ng-repeat="field in companyHeaders">
+                      {{ entity.customFields[field] || '' }}
+                    </td>
                   </tr>
                   </tbody>
                 </table>
@@ -126,10 +126,242 @@
           </div>
         </div>
       </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">SubCompany Info</h4>
+              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+            </div>
+            <div class="card-content collapse show">
+              <div class="card-body card-dashboard">
+                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('subcompany')">Add SubCompany<i class="ft-plus"></i></button>
+                <table class="table table-bordered table-striped mt-4">
+                  <thead>
+                  <tr>
+                    <th>Sub Company Name</th>
+                    <th ng-repeat="field in subCompanyHeaders">{{ field }}</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="entity in subCompanies">
+                    <td>{{ entity.displayName }}</td>
+                    <td ng-repeat="field in subCompanyHeaders">
+                      {{ entity.customFields[field] || '' }}
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Store/ Warehouse Info</h4>
+              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+            </div>
+            <div class="card-content collapse show">
+              <div class="card-body card-dashboard">
+                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('store')">Add Store/ Warehouse<i class="ft-plus"></i></button>
+                <table class="table table-bordered table-striped mt-4">
+                  <thead>
+                  <tr>
+                    <th>Store Name</th>
+                    <th ng-repeat="field in storeHeaders">{{ field }}</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="entity in stores">
+                    <td>{{ entity.displayName }}</td>
+                    <td ng-repeat="field in storeHeaders">
+                      {{ entity.customFields[field] || '' }}
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Store Front Info</h4>
+              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+            </div>
+            <div class="card-content collapse show">
+              <div class="card-body card-dashboard">
+                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('storefront')">Add Storefront<i class="ft-plus"></i></button>
+                <table class="table table-bordered table-striped mt-4">
+                  <thead>
+                  <tr>
+                    <th>Store Front Name</th>
+                    <th ng-repeat="field in storeFrontHeaders">{{ field }}</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="entity in storeFronts">
+                    <td>{{ entity.displayName }}</td>
+                    <td ng-repeat="field in storeFrontHeaders">
+                      {{ entity.customFields[field] || '' }}
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Counter Info</h4>
+              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+            </div>
+            <div class="card-content collapse show">
+              <div class="card-body card-dashboard">
+                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('counter')">Add Counter<i class="ft-plus"></i></button>
+                <table class="table table-bordered table-striped mt-4">
+                  <thead>
+                  <tr>
+                    <th>Counter Name</th>
+                    <th ng-repeat="field in countersHeaders">{{ field }}</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="entity in counters">
+                    <td>{{ entity.displayName }}</td>
+                    <td ng-repeat="field in countersHeaders">
+                      {{ entity.customFields[field] || '' }}
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Scanner Info</h4>
+              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+            </div>
+            <div class="card-content collapse show">
+              <div class="card-body card-dashboard">
+                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('scanner')">Add Scanner<i class="ft-plus"></i></button>
+                <table class="table table-bordered table-striped mt-4">
+                  <thead>
+                  <tr>
+                    <th>Scanner Name</th>
+                    <th ng-repeat="field in scannerHeaders">{{ field }}</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="entity in scanner">
+                    <td>{{ entity.displayName }}</td>
+                    <td ng-repeat="field in scannerHeaders">
+                      {{ entity.customFields[field] || '' }}
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">POS terminal Info</h4>
+              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+            </div>
+            <div class="card-content collapse show">
+              <div class="card-body card-dashboard">
+                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('POSTerminal')">Add POS Terminal<i class="ft-plus"></i></button>
+                <table class="table table-bordered table-striped mt-4">
+                  <thead>
+                  <tr>
+                    <th>POS Terminal Name</th>
+                    <th ng-repeat="field in posTerminalHeaders">{{ field }}</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="entity in posTerminals">
+                    <td>{{ entity.displayName }}</td>
+                    <td ng-repeat="field in posTerminalHeaders">
+                      {{ entity.customFields[field] || '' }}
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Cash Drawer Info</h4>
+              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+            </div>
+            <div class="card-content collapse show">
+              <div class="card-body card-dashboard">
+                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('CashDrawer')">Add Cash Drawer<i class="ft-plus"></i></button>
+                <table class="table table-bordered table-striped mt-4">
+                  <thead>
+                  <tr>
+                    <th>Cash Drawer Name</th>
+                    <th ng-repeat="field in drawerHeaders">{{ field }}</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="entity in drawers">
+                    <td>{{ entity.displayName }}</td>
+                    <td ng-repeat="field in drawerHeaders">
+                      {{ entity.customFields[field] || '' }}
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <div class="modal fade text-left" id="addCompanyDataModal" tabindex="-1" role="dialog" aria-labelledby="addCompanyDataLabel" aria-hidden="true">
+
+  <!--//////// Generic Modal ////// -->
+  <div class="modal fade text-left" id="addGenericDataModal" tabindex="-1" role="dialog" aria-labelledby="addCompanyDataLabel" aria-hidden="true">
     <div class="modal-dialog modal-sm" role="document">
       <div class="modal-content">
         <div class="modal-header btn-bg-gradient-x-purple-blue white">
@@ -141,7 +373,7 @@
 
         <div class="modal-body">
           <form name="companyForm">
-            <div class="form-row" ng-repeat="field in companyFields">
+            <div class="form-row" ng-repeat="field in genericFields">
 
               <div class="form-group col-md-12">
                 <label>{{field.fieldQuestion}} <span class="text-danger" ng-if="field.mandatory">*</span></label>
@@ -150,46 +382,95 @@
                 <input ng-if="field.fieldType === 'text' || field.fieldType === 'number' || field.fieldType === 'date'"
                        type="{{field.fieldType}}"
                        class="form-control"
-                       ng-model="companyData[field.fieldName]"
+                       ng-model="inputData[field.fieldName]"
                        ng-required="field.mandatory">
 
                 <!-- Textarea -->
                 <textarea ng-if="field.fieldType === 'textarea'"
                           class="form-control"
-                          ng-model="companyData[field.fieldName]"
+                          ng-model="inputData[field.fieldName]"
                           ng-required="field.mandatory"></textarea>
 
                 <!-- Checkbox -->
                 <input ng-if="field.fieldType === 'checkbox'"
                        type="checkbox"
                        class="form-check-input"
-                       ng-model="companyData[field.fieldName]">
+                       ng-model="inputData[field.fieldName]">
+
+                <select ng-if="field.fieldType === 'selectCompany'"
+                        class="form-control"
+                        ng-model="inputData[field.fieldName]"
+                        ng-options="company.entityId as company.displayName for company in companies"
+                        ng-change="selectCompany(inputData[field.fieldName])"
+                        ng-required="field.mandatory">
+                  <option value="" disabled selected>Select</option>
+                </select>
+
+                <select ng-if="field.fieldType === 'selectSubCompany'"
+                        class="form-control"
+                        ng-model="inputData[field.fieldName]"
+                        ng-options="subCompany.entityId as subCompany.displayName for subCompany in selectedSubCompanies"
+                        ng-change="selectSubCompany(inputData[field.fieldName])"
+                        ng-required="field.mandatory">
+                  <option value="" disabled>Select</option>
+                </select>
+
+                <div ng-if="field.fieldType === 'selectStores'">
+                  <select multiple size="5"
+                          class="form-control"
+                          ng-model="inputData[field.fieldName]"
+                          ng-options="store.entityId as store.displayName for store in selectedStores"
+                          ng-required="field.mandatory">
+                  </select>
+                </div>
+
+                <select ng-if="field.fieldType === 'selectStore'"
+                        class="form-control"
+                        ng-model="inputData[field.fieldName]"
+                        ng-options="store.entityId as store.displayName for store in selectedStores"
+                        ng-change="selectStore(inputData[field.fieldName])"
+                        ng-required="field.mandatory">
+                  <option value="" disabled>Select</option>
+                </select>
+
+                <select ng-if="field.fieldType === 'selectStoreFront'"
+                        class="form-control"
+                        ng-model="inputData[field.fieldName]"
+                        ng-options="storeFront.entityId as storeFront.displayName for storeFront in selectedStoreFronts"
+                        ng-change="selectStoreFront(inputData[field.fieldName])"
+                        ng-required="field.mandatory">
+                  <option value="" disabled>Select</option>
+                </select>
+
+                <select ng-if="field.fieldType === 'selectStoreCounter'"
+                        class="form-control"
+                        ng-model="inputData[field.fieldName]"
+                        ng-options="counter.entityId as counter.displayName for counter in selectedCounters"
+                        ng-required="field.mandatory">
+                  <option value="" disabled>Select</option>
+                </select>
 
                 <!-- Radio Button (example with Yes/No) -->
                 <div ng-if="field.fieldType === 'radio'">
                   <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" ng-model="companyData[field.fieldName]" value="Yes">
+                    <input class="form-check-input" type="radio" ng-model="inputData[field.fieldName]" value="Yes">
                     <label class="form-check-label">Yes</label>
                   </div>
                   <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" ng-model="companyData[field.fieldName]" value="No">
+                    <input class="form-check-input" type="radio" ng-model="inputData[field.fieldName]" value="No">
                     <label class="form-check-label">No</label>
                   </div>
                 </div>
               </div>
-
             </div>
-            {{companyData | json}}
           </form>
-
           <div class="mt-4">
-            <button class="btn btn-success" ng-click="saveCompanyData()">Submit</button>
+            <button class="btn btn-primary" ng-click="saveData(type)">Submit</button>
           </div>
         </div>
       </div>
     </div>
   </div>
-
 
 
 </div>

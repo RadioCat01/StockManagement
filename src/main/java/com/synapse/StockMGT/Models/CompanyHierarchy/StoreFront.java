@@ -1,6 +1,7 @@
 package com.synapse.StockMGT.Models.CompanyHierarchy;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -19,13 +20,10 @@ public class StoreFront{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer storefrontId;
 
-    private String storeAddress;
-    private String storeEmail;
-    private String tel;
-    private String mobile;
-    private String businessRegNumber;
+    private String storeFrontName;
 
     @ManyToMany(mappedBy = "storeFronts")
+    @JsonIgnore
     private List<Store> store;
 
     @OneToMany(mappedBy = "storeFront", cascade = CascadeType.ALL)
@@ -33,9 +31,11 @@ public class StoreFront{
 
     @ManyToOne
     @JoinColumn(name = "companyId")
+    @JsonIgnore
     private Company company;
 
     @ManyToOne
     @JoinColumn(name = "subComId")
+    @JsonIgnore
     private SubCompany subCompany;
 }

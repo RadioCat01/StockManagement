@@ -205,7 +205,7 @@ public class SalesService {
                         .soldDate(sale.getSoldDate())
                         .serialNumbers(String.join(",", serials))
                         .storeName(store.getSubCompany().getSubCompanyName())
-                        .storeAddress(store.getStoreAddress())
+                        .storeAddress(store.getStoreName())
                         .poReference(sale.getPoReference())
                         .invoiceNumber(sale.getInvoiceNumber())
                         .build());

@@ -1,6 +1,7 @@
 package com.synapse.StockMGT.Models.CompanyHierarchy;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.synapse.StockMGT.Models.Item;
 import lombok.*;
@@ -22,11 +23,7 @@ public class Store{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer storeId;
 
-    private String storeAddress;
-    private String storeEmail;
-    private String tel;
-    private String mobile;
-    private String businessRegNumber;
+    private String storeName;
 
     @ManyToMany(cascade = {CascadeType.PERSIST,  CascadeType.MERGE})
     @JoinTable(
@@ -42,9 +39,11 @@ public class Store{
 
     @ManyToOne
     @JoinColumn(name = "companyId")
+    @JsonIgnore
     private Company company;
 
     @ManyToOne
     @JoinColumn(name = "subComId")
+    @JsonIgnore
     private SubCompany subCompany;
 }

@@ -15,13 +15,18 @@ import java.util.List;
 public class FormController {
     private final FormService formService;
 
-    @GetMapping("/company")
-    public ResponseEntity<List<FieldDTO>> getCompanyFields(){
-        return ResponseEntity.ok(formService.getCompanyForm());
+    @GetMapping("/templates")
+    public ResponseEntity<?>  getTemplates(){
+        return ResponseEntity.ok(formService.getTemplates());
     }
 
-    @PostMapping("/company")
-    public ResponseEntity<List<FieldDTO>> getCompanyFields(@RequestBody FieldDTO field){
-        return ResponseEntity.ok(formService.addCompanyField(field));
+    @GetMapping("/{formType}")
+    public ResponseEntity<List<FieldDTO>> getCompanyFields(@PathVariable String formType){
+        return ResponseEntity.ok(formService.getGenericFields(formType));
+    }
+
+    @PostMapping
+    public ResponseEntity<List<FieldDTO>> addCompanyFields(@RequestBody FieldDTO field){
+        return ResponseEntity.ok(formService.addGenericFields(field));
     }
 }

@@ -106,17 +106,29 @@
                                 <table class="table table-striped table-bordered">
                                     <thead>
                                     <tr>
-                                        <th>Form</th>
+                                        <th>ID</th>
+                                        <th>Form Type</th>
+                                        <th>Description</th>
                                         <th>Actions</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr>
-                                        <td>Company</td>
-                                        <td><button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#formsModel"><i class="ft-plus"></i> </button></td>
+                                    <tr ng-repeat="formType in formTypes">
+                                        <td>{{ formType.templateId }}</td>
+                                        <td>{{ formType.templateType }}</td>
+                                        <td>{{ formType.templateDescription }}</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal(formType.templateType)">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
                                     </tr>
                                     </tbody>
                                 </table>
+
                             </div>
                         </div>
                     </div>
@@ -125,7 +137,7 @@
         </div>
     </div>
 
-    <!-- /////////// Company Model /////////// -->
+    <!-- /////////// Generic Model /////////// -->
     <div class="modal fade text-left" id="formsModel" tabindex="-1" role="dialog" aria-labelledby="formsModelLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
@@ -136,7 +148,6 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!-- Existing Fields Table -->
                     <table class="table table-bordered table-striped mt-4">
                         <thead>
                         <tr>
@@ -146,7 +157,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr ng-repeat="field in companyFields">
+                        <tr ng-repeat="field in entityFields">
                             <td>{{field.fieldName}}</td>
                             <td>{{field.fieldType}}</td>
                             <td>{{field.mandatory ? 'Yes' : 'No'}}</td>
@@ -181,7 +192,7 @@
                                 <input type="checkbox" ng-model="newField.mandatory">
                             </div>
                             <div class="form-group col-md-2 d-flex align-items-end">
-                                <button class="btn btn-primary" ng-click="addCompanyField()">Add</button>
+                                <button class="btn btn-primary" ng-click="addFieldToForm()">Add</button>
                             </div>
                         </div>
                     </div>

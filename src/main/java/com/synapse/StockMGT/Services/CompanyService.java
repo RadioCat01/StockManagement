@@ -2,6 +2,8 @@ package com.synapse.StockMGT.Services;
 
 import com.synapse.StockMGT.DTOs.CompanyDTOs.*;
 import com.synapse.StockMGT.DTOs.FormDTOs.DataReqDTO;
+import com.synapse.StockMGT.DTOs.FormDTOs.GenericEntityDTO;
+import com.synapse.StockMGT.Enums.CounterType;
 import com.synapse.StockMGT.Models.CompanyHierarchy.*;
 import com.synapse.StockMGT.Models.CustomFields.FieldData;
 import com.synapse.StockMGT.Models.CustomFields.TemplateFields;
@@ -14,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,295 +60,421 @@ public class CompanyService {
         return company;
     }
 
-    public SubCompanyDTO createSubCompany(SubCompanyDTO subCompanyDTO) {
-        Company company = companyRepo.findById(subCompanyDTO.getCompanyId())
-                .orElseThrow(()-> new RuntimeException("Company Not Found"));
-        SubCompany subCompany = subCompanyRepo.save(SubCompany.builder()
-                        .subCompanyName(subCompanyDTO.getSubCompanyName())
-                        .subCompanyAddress(subCompanyDTO.getSubCompanyAddress())
-                        .subCompanyPhone(subCompanyDTO.getSubCompanyPhone())
-                        .subCompanyEmail(subCompanyDTO.getSubCompanyEmail())
-                        .company(company)
-                        .build());
+    public SubCompany createSubCompany(Map<String, Object> formData) {
+        Company company = companyRepo.findById(
+                Integer.parseInt((String) formData.get("companyId"))
+        ).orElseThrow(() -> new RuntimeException("Company Not Found"));
+
+
+        SubCompany subCompany = SubCompany.builder()
+                .subCompanyName((String) formData.get("subCompanyName"))
+                .company(company)
+                .build();
+
+        subCompanyRepo.save(subCompany);
         company.getSubCompanies().add(subCompany);
         companyRepo.save(company);
-        return subCompanyDTO;
+
+        Templates template = templateRepo.findByTemplateType("SubCompany")
+                .orElseThrow();
+        saveCustomFields(String.valueOf(subCompany.getSubCompanyId()), "SubCompany", template, formData);
+
+        return subCompany;
     }
 
-    public StoreDTO createStore(StoreDTO storeDTO) {
-        Company company = companyRepo.findById(storeDTO.getCompanyId())
-                .orElseThrow(()-> new RuntimeException("Company Not Found"));
-        SubCompany subCompany = subCompanyRepo.findById(storeDTO.getSubCompanyId())
-                .orElseThrow(()-> new RuntimeException("SubCompany Not Found"));
+    public Store createStore(Map<String, Object> formData) {
+        Company company = companyRepo.findById(Integer.parseInt(formData.get("companyId").toString()))
+                .orElseThrow(() -> new RuntimeException("Company Not Found"));
+        SubCompany subCompany = subCompanyRepo.findById(Integer.parseInt(formData.get("subCompanyId").toString()))
+                .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
 
-        Store store = storeRepo.save(Store.builder()
-                        .storeAddress(storeDTO.getStoreAddress())
-                        .storeEmail(storeDTO.getStoreEmail())
-                        .tel(storeDTO.getTel())
-                        .mobile(storeDTO.getMobile())
-                        .businessRegNumber(storeDTO.getBusinessRegNumber())
-                        .company(company)
-                        .subCompany(subCompany)
-                        .build());
+        Store store = Store.builder()
+                .storeName((String) formData.get("storeName"))
+                .company(company)
+                .subCompany(subCompany)
+                .build();
+
+        storeRepo.save(store);
         company.getStores().add(store);
         subCompany.getStores().add(store);
         companyRepo.save(company);
         subCompanyRepo.save(subCompany);
-        return storeDTO;
+        Templates template = templateRepo.findByTemplateType("Store").orElseThrow();
+        saveCustomFields(String.valueOf(store.getStoreId()), "Store", template, formData);
+
+        return store;
     }
 
-    public StoreFrontDTO createStoreFront(StoreFrontDTO storeFrontDTO) {
-        Company company = companyRepo.findById(storeFrontDTO.getCompanyId())
-                .orElseThrow(()-> new RuntimeException("Company Not Found"));
-        SubCompany subCompany = subCompanyRepo.findById(storeFrontDTO.getSubCompanyId())
-                .orElseThrow(()-> new RuntimeException("SubCompany Not Found"));
 
-        List<Store> stores = storeFrontDTO.getStoreIds().stream().map(id ->
-                storeRepo.findById(id).orElseThrow()).toList();
+    public StoreFront createStoreFront(Map<String, Object> formData) {
+        Company company = companyRepo.findById(Integer.parseInt(formData.get("companyId").toString()))
+                .orElseThrow(() -> new RuntimeException("Company Not Found"));
+        SubCompany subCompany = subCompanyRepo.findById(Integer.parseInt(formData.get("subCompanyId").toString()))
+                .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
+
+        List<String> storeIdStrings = (List<String>) formData.get("storeIds");
+
+        List<Integer> storeIds = storeIdStrings.stream()
+                .map(Integer::parseInt)
+                .toList();
+
+        List<Store> stores = storeIds.stream()
+                .map(id -> storeRepo.findById(id).orElseThrow(() -> new RuntimeException("Store Not Found")))
+                .toList();
 
         StoreFront storeFront = StoreFront.builder()
-                .storeAddress(storeFrontDTO.getStoreAddress())
-                .storeEmail(storeFrontDTO.getStoreEmail())
-                .tel(storeFrontDTO.getTel())
-                .mobile(storeFrontDTO.getMobile())
-                .businessRegNumber(storeFrontDTO.getBusinessRegNumber())
+                .storeFrontName((String) formData.get("storeFrontName"))
                 .company(company)
                 .subCompany(subCompany)
                 .store(new ArrayList<>())
                 .build();
 
-        for (Store store : stores) {
+        stores.forEach(store -> {
             storeFront.getStore().add(store);
             store.getStoreFronts().add(storeFront);
-        }
+        });
 
         company.getStoreFronts().add(storeFront);
         subCompany.getStoreFronts().add(storeFront);
 
         storeFrontRepo.save(storeFront);
-
         storeRepo.saveAll(stores);
         companyRepo.save(company);
         subCompanyRepo.save(subCompany);
 
-        return storeFrontDTO;
+        Templates template = templateRepo.findByTemplateType("StoreFront").orElseThrow();
+        saveCustomFields(String.valueOf(storeFront.getStorefrontId()), "StoreFront", template, formData);
+
+        return storeFront;
     }
 
-    public CounterDTO createCounter(CounterDTO counterDTO) {
-        StoreFront storeFront = storeFrontRepo.findById(counterDTO.getStoreFrontId())
-                .orElseThrow(()-> new RuntimeException("Store Front Not Found"));
-        Company company = companyRepo.findById(counterDTO.getCompanyId())
-                .orElseThrow(()-> new RuntimeException("Company Not Found"));
-        SubCompany subCompany = subCompanyRepo.findById(counterDTO.getSubCompanyId())
-                .orElseThrow(()-> new RuntimeException("SubCompany Not Found"));
+
+    public Counter createCounter(Map<String, Object> formData) {
+        StoreFront storeFront = storeFrontRepo.findById(Integer.parseInt(formData.get("storeFrontId").toString()))
+                .orElseThrow(() -> new RuntimeException("Store Front Not Found"));
+        Company company = companyRepo.findById(Integer.parseInt(formData.get("companyId").toString()))
+                .orElseThrow(() -> new RuntimeException("Company Not Found"));
+        SubCompany subCompany = subCompanyRepo.findById(Integer.parseInt(formData.get("subCompanyId").toString()))
+                .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
 
         Counter counter = Counter.builder()
-                .counterType(counterDTO.getCounterType())
+                .counterType(CounterType.valueOf((String) formData.get("counterType")))
+                .counterName((String) formData.get("counterName"))
                 .company(company)
                 .subCompany(subCompany)
                 .storeFront(storeFront)
                 .build();
+
         company.getCounters().add(counter);
         subCompany.getCounters().add(counter);
         storeFront.getCounter().add(counter);
+
         companyRepo.save(company);
         subCompanyRepo.save(subCompany);
         storeFrontRepo.save(storeFront);
-        return counterDTO;
+
+
+        Templates template = templateRepo.findByTemplateType("Counter").orElseThrow();
+        saveCustomFields(String.valueOf(counter.getCounterId()), "Counter", template, formData);
+
+
+        return counter;
     }
 
-    public ScannerDTO  createScanner(ScannerDTO scannerDTO) {
-        Company company = companyRepo.findById(scannerDTO.getCompanyId())
-                .orElseThrow(()-> new RuntimeException("Company Not Found"));
-        SubCompany subCompany = subCompanyRepo.findById(scannerDTO.getSubcompanyId())
-                .orElseThrow(()-> new RuntimeException("SubCompany Not Found"));
-        Counter counter = counterRepo.findById(scannerDTO.getCounterId())
-                .orElseThrow(()-> new RuntimeException("Counter Not Found"));
 
-        Scanner scanner = scannerRepo.save(Scanner.builder()
-                .scannerName(scannerDTO.getScannerName())
-                .scannerSerial(scannerDTO.getScannerSerial())
+    public Scanner createScanner(Map<String, Object> formData) {
+        Company company = companyRepo.findById(Integer.parseInt(formData.get("companyId").toString()))
+                .orElseThrow(() -> new RuntimeException("Company Not Found"));
+        SubCompany subCompany = subCompanyRepo.findById(Integer.parseInt(formData.get("subCompanyId").toString()))
+                .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
+        Counter counter = counterRepo.findById(Integer.parseInt(formData.get("counterId").toString()))
+                .orElseThrow(() -> new RuntimeException("Counter Not Found"));
+
+        Scanner scanner = Scanner.builder()
+                .scannerName((String) formData.get("scannerName"))
+                .scannerSerial((String) formData.get("scannerSerial"))
                 .company(company)
                 .subCompany(subCompany)
                 .counter(counter)
-                .build());
+                .build();
+
+        scannerRepo.save(scanner);
         company.getScanners().add(scanner);
         subCompany.getScanners().add(scanner);
         counter.getScanners().add(scanner);
         companyRepo.save(company);
         subCompanyRepo.save(subCompany);
         counterRepo.save(counter);
-        return scannerDTO;
+
+        Templates template = templateRepo.findByTemplateType("Scanner").orElseThrow();
+        saveCustomFields(String.valueOf(scanner.getScannerId()), "Scanner", template, formData);
+
+
+        return scanner;
     }
 
-    public POSTerminalDTO createPOSTerminal(POSTerminalDTO posterminalDTO) {
-        Company company = companyRepo.findById(posterminalDTO.getCompanyId())
-                .orElseThrow(()-> new RuntimeException("Company Not Found"));
-        SubCompany subCompany = subCompanyRepo.findById(posterminalDTO.getSubcompanyId())
-                .orElseThrow(()-> new RuntimeException("SubCompany Not Found"));
-        Counter counter = counterRepo.findById(posterminalDTO.getCounterId())
-                .orElseThrow(()-> new RuntimeException("Counter Not Found"));
 
-        PosTerminal terminal = posTerminalRepo.save(PosTerminal.builder()
-                .posTerminalName(posterminalDTO.getPosTerminalName())
-                .posTerminalDetails(posterminalDTO.getPosTerminalDetails())
+    public PosTerminal createPOSTerminal(Map<String, Object> formData) {
+        Company company = companyRepo.findById(Integer.parseInt(formData.get("companyId").toString()))
+                .orElseThrow(() -> new RuntimeException("Company Not Found"));
+        SubCompany subCompany = subCompanyRepo.findById(Integer.parseInt(formData.get("subCompanyId").toString()))
+                .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
+        Counter counter = counterRepo.findById(Integer.parseInt(formData.get("counterId").toString()))
+                .orElseThrow(() -> new RuntimeException("Counter Not Found"));
+
+        PosTerminal terminal = PosTerminal.builder()
+                .posTerminalName((String) formData.get("posTerminalName"))
+                .posTerminalDetails((String) formData.get("posTerminalDetails"))
                 .company(company)
                 .subCompany(subCompany)
                 .counter(counter)
-                .build());
+                .build();
+
+        posTerminalRepo.save(terminal);
         company.getPosTerminals().add(terminal);
         subCompany.getPosTerminals().add(terminal);
         counter.getPosTerminals().add(terminal);
         companyRepo.save(company);
         subCompanyRepo.save(subCompany);
         counterRepo.save(counter);
-        return posterminalDTO;
+
+        Templates template = templateRepo.findByTemplateType("POSTerminal").orElseThrow();
+        saveCustomFields(String.valueOf(terminal.getPosTerminalId()), "POSTerminal", template, formData);
+
+        return terminal;
     }
 
-    public DrawerDTO  createDrawer(DrawerDTO drawerDTO) {
-        Company company = companyRepo.findById(drawerDTO.getCompanyId())
-                .orElseThrow(()-> new RuntimeException("Company Not Found"));
-        SubCompany subCompany = subCompanyRepo.findById(drawerDTO.getSubCompanyId())
-                .orElseThrow(()-> new RuntimeException("SubCompany Not Found"));
-        Counter counter = counterRepo.findById(drawerDTO.getCounterId())
-                .orElseThrow(()-> new RuntimeException("Counter Not Found"));
 
-        CashDrawer cashDrawer = cashDrawerRepo.save(CashDrawer.builder()
-                        .drawerName(drawerDTO.getDrawerName())
-                        .drawerDescription(drawerDTO.getDrawerDescription())
-                        .drawerType(drawerDTO.getDrawerType())
-                        .drawerStatus(drawerDTO.getDrawerStatus())
-                        .company(company)
-                        .subCompany(subCompany)
-                        .counter(counter)
-                        .build());
+    public CashDrawer createDrawer(Map<String, Object> formData) {
+        Company company = companyRepo.findById(Integer.parseInt(formData.get("companyId").toString()))
+                .orElseThrow(() -> new RuntimeException("Company Not Found"));
+        SubCompany subCompany = subCompanyRepo.findById(Integer.parseInt(formData.get("subCompanyId").toString()))
+                .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
+        Counter counter = counterRepo.findById(Integer.parseInt(formData.get("counterId").toString()))
+                .orElseThrow(() -> new RuntimeException("Counter Not Found"));
+
+        CashDrawer cashDrawer = CashDrawer.builder()
+                .drawerName((String) formData.get("drawerName"))
+                .company(company)
+                .subCompany(subCompany)
+                .counter(counter)
+                .build();
+
+        cashDrawerRepo.save(cashDrawer);
         company.getCashDrawers().add(cashDrawer);
         subCompany.getCashDrawers().add(cashDrawer);
         counter.getCashDrawers().add(cashDrawer);
         companyRepo.save(company);
         subCompanyRepo.save(subCompany);
         counterRepo.save(counter);
-        return drawerDTO;
+
+        Templates template = templateRepo.findByTemplateType("CashDrawer").orElseThrow();
+        saveCustomFields(String.valueOf(cashDrawer.getDrawerId()), "Drawer", template, formData);
+
+        return cashDrawer;
     }
 
 
-    public List<CompanyDTO> getAllCompanies() {
-        Templates template = templateRepo.findByTemplateType("Company")
-                .orElseThrow(() -> new RuntimeException("Company template not found"));
+    private void saveCustomFields(String entityId, String formType, Templates template, Map<String, Object> formData) {
+        List<TemplateFields> fields = template.getTemplateFields();
+        for (TemplateFields field : fields) {
+            FieldData data = FieldData.builder()
+                    .template(template)
+                    .customField(field)
+                    .entityId(entityId)
+                    .formType(formType)
+                    .fieldType(field.getFieldType())
+                    .build();
+            if (formData.containsKey(field.getFieldName())) {
+                switch (field.getFieldType()) {
+                    case "selectCompany" -> {
+                        int id = Integer.parseInt(formData.get(field.getFieldName()).toString());
+                        Company company = companyRepo.findById(id).orElseThrow(() -> new RuntimeException("Company Not Found"));
+                        data.setFieldValue(company.getCompanyName());
+                    }
+                    case "selectSubCompany" -> {
+                        int id = Integer.parseInt(formData.get(field.getFieldName()).toString());
+                        SubCompany subCompany = subCompanyRepo.findById(id).orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
+                        data.setFieldValue(subCompany.getSubCompanyName());
+                    }
+                    case "selectStore" -> {
+                        int id = Integer.parseInt(formData.get(field.getFieldName()).toString());
+                        Store store = storeRepo.findById(id).orElseThrow(() -> new RuntimeException("Store Not Found"));
+                        data.setFieldValue(store.getStoreName());
+                    }
+                    case "selectStores" -> {
+                        Object value = formData.get(field.getFieldName());
+                        List<Integer> ids = ((List<?>) value).stream()
+                                .map(String::valueOf)
+                                .map(Integer::parseInt)
+                                .toList();
+
+                        List<Store> stores = storeRepo.findAllById(ids);
+                        data.setFieldValue(stores.stream()
+                                .map(Store::getStoreName)
+                                .collect(Collectors.joining(", ")));
+                    }
+                    case "selectStoreFront" -> {
+                        int id = Integer.parseInt(formData.get(field.getFieldName()).toString());
+                        StoreFront front = storeFrontRepo.findById(id).orElseThrow(() -> new RuntimeException("Store Front Not Found"));
+                        data.setFieldValue(front.getStoreFrontName());
+                    }
+                    case "selectStoreCounter" -> {
+                        int id = Integer.parseInt(formData.get(field.getFieldName()).toString());
+                        Counter counter = counterRepo.findById(id).orElseThrow(() -> new RuntimeException("Counter Not Found"));
+                        data.setFieldValue(counter.getCounterName());
+                    }
+                    default -> data.setFieldValue(String.valueOf(formData.get(field.getFieldName())));
+                }
+
+                fieldDataRepo.save(data);
+            }
+        }
+    }
+
+
+
+    public List<GenericEntityDTO> getAllCompanies() {
+        return convertToGenericDTO(
+                companyRepo.findAll(),
+                "Company",
+                company -> String.valueOf(company.getCompanyId()),
+                Company::getCompanyName,
+                (store, dto) -> {}
+        );
+    }
+
+
+    public List<GenericEntityDTO> getAllSubCompanies() {
+        return convertToGenericDTO(
+                subCompanyRepo.findAll(),
+                "SubCompany",
+                sub -> String.valueOf(sub.getSubCompanyId()),
+                SubCompany::getSubCompanyName,
+                (store, dto) -> {
+                    dto.setCompanyId(store.getSubCompanyId());
+                }
+        );
+    }
+
+    public List<GenericEntityDTO> getAllStores() {
+        return convertToGenericDTO(
+                storeRepo.findAll(),
+                "Store",
+                store -> String.valueOf(store.getStoreId()),
+                Store::getStoreName,
+                (store, dto) -> {
+                    dto.setCompanyId(store.getCompany().getCompanyId());
+                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
+                }
+        );
+
+    }
+
+    public List<GenericEntityDTO> getAllStoreFronts() {
+        return convertToGenericDTO(
+                storeFrontRepo.findAll(),
+                "StoreFront",
+                front -> String.valueOf(front.getStorefrontId()),
+                StoreFront::getStoreFrontName,
+                (store, dto) -> {
+                    dto.setCompanyId(store.getCompany().getCompanyId());
+                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
+                    dto.setStoreId(store.getStore().stream().map(Store::getStoreId).toList());
+                }
+        );
+    }
+
+    public List<GenericEntityDTO> getAllCounters() {
+        return convertToGenericDTO(
+                counterRepo.findAll(),
+                "Counter",
+                counter -> String.valueOf(counter.getCounterId()),
+                Counter::getCounterName,
+                (store, dto) -> {
+                    dto.setCompanyId(store.getCompany().getCompanyId());
+                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
+                    dto.setStorefrontId(store.getStoreFront().getStorefrontId());
+                }
+        );
+    }
+
+    public List<GenericEntityDTO> getAllScanners() {
+        return convertToGenericDTO(
+                scannerRepo.findAll(),
+                "Scanner",
+                scanner -> String.valueOf(scanner.getScannerId()),
+                Scanner::getScannerName,
+                (store, dto) -> {
+                    dto.setCompanyId(store.getCompany().getCompanyId());
+                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
+                    dto.setCounterId(store.getCounter().getCounterId());
+                }
+        );
+    }
+
+    public List<GenericEntityDTO> getAllPOSTerminals() {
+        return convertToGenericDTO(
+                posTerminalRepo.findAll(),
+                "POSTerminal",
+                pos -> String.valueOf(pos.getPosTerminalId()),
+                PosTerminal::getPosTerminalName,
+                (store, dto) -> {
+                    dto.setCompanyId(store.getCompany().getCompanyId());
+                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
+                    dto.setCounterId(store.getCounter().getCounterId());
+                }
+        );
+    }
+
+    public List<GenericEntityDTO> getAllDrawers() {
+        return convertToGenericDTO(
+                cashDrawerRepo.findAll(),
+                "CashDrawer",
+                drawer -> String.valueOf(drawer.getDrawerId()),
+                CashDrawer::getDrawerName,
+                (store, dto) -> {
+                    dto.setCompanyId(store.getCompany().getCompanyId());
+                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
+                    dto.setCounterId(store.getCounter().getCounterId());
+                }
+        );
+    }
+
+    private <T> List<GenericEntityDTO> convertToGenericDTO(
+            List<T> entities,
+            String templateType,
+            Function<T, String> getId,
+            Function<T, String> getDisplayName,
+            BiConsumer<T, GenericEntityDTO> populateFields
+    ) {
+        Templates template = templateRepo.findByTemplateType(templateType)
+                .orElseThrow(() -> new RuntimeException(templateType + " template not found"));
 
         List<FieldData> allFieldData = fieldDataRepo.findByTemplate(template);
 
-        return companyRepo.findAll().stream().map(company -> {
+        return entities.stream().map(entity -> {
+            String entityId = getId.apply(entity);
+            String displayName = getDisplayName.apply(entity);
             Map<String, String> customFieldsMap = allFieldData.stream()
-                    .filter(fd -> String.valueOf(company.getCompanyId()).equals(fd.getEntityId()))
+                    .filter(fd -> entityId.equals(fd.getEntityId()))
                     .collect(Collectors.toMap(
-                            fd -> fd.getCustomField().getFieldName(),
+                            fd -> fd.getCustomField().getFieldQuestion(),
                             FieldData::getFieldValue
                     ));
 
-            return CompanyDTO.builder()
-                    .companyId(company.getCompanyId())
-                    .companyName(customFieldsMap.getOrDefault("companyName", company.getCompanyName()))
+            customFieldsMap.entrySet().removeIf(entry ->
+                    entry.getValue() != null && entry.getValue().equals(displayName));
+
+            GenericEntityDTO dto = GenericEntityDTO.builder()
+                    .entityId(entityId)
+                    .displayName(displayName)
                     .customFields(customFieldsMap)
                     .build();
+            populateFields.accept(entity, dto);
+            return dto;
         }).collect(Collectors.toList());
     }
 
-
-    public List<SubCompanyDTO> getAllSubCompanies() {
-        return subCompanyRepo.findAll().stream().map(sub ->
-                SubCompanyDTO.builder()
-                        .subCompanyName(sub.getSubCompanyName())
-                        .companyId(sub.getCompany().getCompanyId())
-                        .subCompanyId(sub.getSubCompanyId())
-                        .build()
-        ).collect(Collectors.toList());
-    }
-
-    public List<StoreDTO> getAllStores() {
-        return storeRepo.findAll().stream().map(store ->
-                StoreDTO.builder()
-                        .storeAddress(store.getStoreAddress())
-                        .storeEmail(store.getStoreEmail())
-                        .tel(store.getTel())
-                        .mobile(store.getMobile())
-                        .businessRegNumber(store.getBusinessRegNumber())
-                        .companyId(store.getCompany().getCompanyId())
-                        .subCompanyId(store.getSubCompany().getSubCompanyId())
-                        .storeId(store.getStoreId())
-                        .build()
-        ).collect(Collectors.toList());
-    }
-
-    public List<StoreFrontDTO> getAllStoreFronts() {
-        return storeFrontRepo.findAll().stream().map(front ->
-                StoreFrontDTO.builder()
-                        .storeAddress(front.getStoreAddress())
-                        .storeEmail(front.getStoreEmail())
-                        .tel(front.getTel())
-                        .mobile(front.getMobile())
-                        .businessRegNumber(front.getBusinessRegNumber())
-                        .companyId(front.getCompany().getCompanyId())
-                        .subCompanyId(front.getSubCompany().getSubCompanyId())
-                        .storeIds(front.getStore().stream()
-                                .map(Store::getStoreId)
-                                .collect(Collectors.toList()))
-                        .storeFrontId(front.getStorefrontId())
-                        .build()
-        ).collect(Collectors.toList());
-    }
-
-    public List<CounterDTO> getAllCounters() {
-        return counterRepo.findAll().stream().map(counter ->
-                CounterDTO.builder()
-                        .counterType(counter.getCounterType())
-                        .companyId(counter.getCompany().getCompanyId())
-                        .subCompanyId(counter.getSubCompany().getSubCompanyId())
-                        .storeFrontId(counter.getStoreFront().getStorefrontId())
-                        .counterId(counter.getCounterId())
-                        .build()
-        ).collect(Collectors.toList());
-    }
-
-    public List<ScannerDTO> getAllScanners() {
-        return scannerRepo.findAll().stream().map(scanner ->
-                ScannerDTO.builder()
-                        .scannerName(scanner.getScannerName())
-                        .scannerSerial(scanner.getScannerSerial())
-                        .companyId(scanner.getCompany().getCompanyId())
-                        .subcompanyId(scanner.getSubCompany().getSubCompanyId())
-                        .counterId(scanner.getCounter().getCounterId())
-                        .scannerId(scanner.getScannerId())
-                        .build()
-        ).collect(Collectors.toList());
-    }
-
-    public List<POSTerminalDTO> getAllPOSTerminals() {
-        return posTerminalRepo.findAll().stream().map(pos ->
-                POSTerminalDTO.builder()
-                        .posTerminalName(pos.getPosTerminalName())
-                        .posTerminalDetails(pos.getPosTerminalDetails())
-                        .companyId(pos.getCompany().getCompanyId())
-                        .subcompanyId(pos.getSubCompany().getSubCompanyId())
-                        .counterId(pos.getCounter().getCounterId())
-                        .posId(pos.getPosTerminalId())
-                        .build()
-        ).collect(Collectors.toList());
-    }
-
-    public List<DrawerDTO> getAllDrawers() {
-        return cashDrawerRepo.findAll().stream().map(drawer ->
-                DrawerDTO.builder()
-                        .drawerName(drawer.getDrawerName())
-                        .drawerDescription(drawer.getDrawerDescription())
-                        .drawerStatus(drawer.getDrawerStatus())
-                        .drawerType(drawer.getDrawerType())
-                        .companyId(drawer.getCompany().getCompanyId())
-                        .subCompanyId(drawer.getSubCompany().getSubCompanyId())
-                        .counterId(drawer.getCounter().getCounterId())
-                        .drawerId(drawer.getDrawerId())
-                        .build()
-        ).collect(Collectors.toList());
-    }
 
 }

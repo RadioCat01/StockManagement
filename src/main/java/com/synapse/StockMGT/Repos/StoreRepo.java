@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface StoreRepo extends JpaRepository<Store, Integer> {
-    Optional<Store> findByBusinessRegNumber(String name);
+    Optional<Store> findByStoreName(String name);
 }

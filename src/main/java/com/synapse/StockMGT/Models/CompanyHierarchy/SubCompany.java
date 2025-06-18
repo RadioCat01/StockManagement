@@ -1,5 +1,6 @@
 package com.synapse.StockMGT.Models.CompanyHierarchy;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.synapse.StockMGT.CustomFields.*;
 import com.synapse.StockMGT.Models.*;
 import com.synapse.StockMGT.Models.CustomFields.Templates;
@@ -21,14 +22,10 @@ public class SubCompany{
     private Integer subCompanyId;
 
     private String subCompanyName;
-    private String subCompanyAddress;
-    private String subCompanyPhone;
-    private String subCompanyEmail;
-    private String subBusinessRegNumber;
-    private String subBusinessLogo;
 
     @ManyToOne
     @JoinColumn(name = "companyId")
+    @JsonIgnore
     private Company company;
 
     @OneToMany(mappedBy = "subCompany",cascade = CascadeType.ALL)

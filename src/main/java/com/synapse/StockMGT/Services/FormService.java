@@ -1,6 +1,7 @@
 package com.synapse.StockMGT.Services;
 
 import com.synapse.StockMGT.DTOs.FormDTOs.FieldDTO;
+import com.synapse.StockMGT.DTOs.FormDTOs.TemplateDTO;
 import com.synapse.StockMGT.Models.CustomFields.TemplateFields;
 import com.synapse.StockMGT.Models.CustomFields.Templates;
 import com.synapse.StockMGT.Repos.TemplateFieldsRepo;
@@ -18,8 +19,17 @@ public class FormService {
     private final TemplateRepo templateRepo;
     private final TemplateFieldsRepo templateFieldsRepo;
 
-    public List<FieldDTO> getCompanyForm() {
-        Templates template = templateRepo.findByTemplateType("Company")
+    public List<TemplateDTO> getTemplates() {
+        return templateRepo.findAll().stream().map(template -> TemplateDTO.builder()
+                        .templateId(template.getTemplateId())
+                        .templateType(template.getTemplateType())
+                        .templateDescription(template.getTemplateDescription())
+                        .build())
+                .toList();
+    }
+
+    public List<FieldDTO> getGenericFields(String fieldName) {
+        Templates template = templateRepo.findByTemplateType(fieldName)
                 .orElseThrow();
         return template.getTemplateFields().stream().map(field ->
                 FieldDTO.builder()
@@ -31,7 +41,7 @@ public class FormService {
                         .build()).toList();
     }
 
-    public List<FieldDTO> addCompanyField(FieldDTO fieldDTO) {
+    public List<FieldDTO> addGenericFields(FieldDTO fieldDTO) {
         Templates template = templateRepo.findById(fieldDTO.getTemplateId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid template ID: " + fieldDTO.getTemplateId()));
         TemplateFields field = TemplateFields.builder()
@@ -52,4 +62,5 @@ public class FormService {
                 .isMandatory(f.getIsMandatory())
                 .build()).collect(Collectors.toList());
     }
+
 }

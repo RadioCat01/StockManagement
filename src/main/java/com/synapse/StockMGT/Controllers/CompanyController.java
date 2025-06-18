@@ -16,84 +16,84 @@ public class CompanyController {
 
     private final CompanyService companyService;
 
-    @PostMapping("/com")
+    @PostMapping("/company")
     public ResponseEntity<?> createCompany(@RequestBody DataReqDTO dto) {
         return ResponseEntity.ok(companyService.createCompany(dto.getFormData()));
     }
 
-    @PostMapping("/sub")
-    public ResponseEntity<?> createSubCompany(@RequestBody SubCompanyDTO subCompanyDTO) {
-        return ResponseEntity.ok(companyService.createSubCompany(subCompanyDTO));
+    @PostMapping("/subcompany")
+    public ResponseEntity<?> createSubCompany(@RequestBody DataReqDTO dto) {
+        return ResponseEntity.ok(companyService.createSubCompany(dto.getFormData()));
     }
 
     @PostMapping("/store")
-    public ResponseEntity<?> createStore(@RequestBody StoreDTO storeDTO) {
-        return ResponseEntity.ok(companyService.createStore(storeDTO));
+    public ResponseEntity<?> createStore(@RequestBody DataReqDTO dto) {
+        return ResponseEntity.ok(companyService.createStore(dto.getFormData()));
     }
 
-    @PostMapping("/storeFront")
-    public ResponseEntity<?> createStorefront(@RequestBody StoreFrontDTO storeFrontDTO) {
-        return ResponseEntity.ok(companyService.createStoreFront(storeFrontDTO));
+    @PostMapping("/storefront")
+    public ResponseEntity<?> createStorefront(@RequestBody DataReqDTO dto) {
+        return ResponseEntity.ok(companyService.createStoreFront(dto.getFormData()));
     }
 
     @PostMapping("/counter")
-    public ResponseEntity<?> createCounter(@RequestBody CounterDTO counterDTO) {
-        return ResponseEntity.ok(companyService.createCounter(counterDTO));
+    public ResponseEntity<?> createCounter(@RequestBody DataReqDTO dto) {
+        return ResponseEntity.ok(companyService.createCounter(dto.getFormData()));
     }
 
     @PostMapping("/scanner")
-    public ResponseEntity<?> createScanner(@RequestBody ScannerDTO scannerDTO) {
-        return ResponseEntity.ok(companyService.createScanner(scannerDTO));
+    public ResponseEntity<?> createScanner(@RequestBody DataReqDTO dto) {
+        return ResponseEntity.ok(companyService.createScanner(dto.getFormData()));
     }
 
-    @PostMapping("/pos")
-    public ResponseEntity<?> createPos(@RequestBody POSTerminalDTO posDTO) {
-        return ResponseEntity.ok(companyService.createPOSTerminal(posDTO));
+    @PostMapping("/posterminal")
+    public ResponseEntity<?> createPos(@RequestBody DataReqDTO dto) {
+        return ResponseEntity.ok(companyService.createPOSTerminal(dto.getFormData()));
     }
 
-    @PostMapping("/drawer")
-    public ResponseEntity<?> createDrawer(@RequestBody DrawerDTO drawerDTO) {
-        return ResponseEntity.ok(companyService.createDrawer(drawerDTO));
+    @PostMapping("/cashdrawer")
+    public ResponseEntity<?> createDrawer(@RequestBody DataReqDTO dto) {
+        return ResponseEntity.ok(companyService.createDrawer(dto.getFormData()));
     }
 
 
-    @GetMapping("/com")
-    public ResponseEntity<List<CompanyDTO>> getAllCompanies() {
+    @GetMapping("/company")
+    public ResponseEntity<?> getAllCompanies() {
         return ResponseEntity.ok(companyService.getAllCompanies());
     }
 
-    @GetMapping("/sub")
-    public ResponseEntity<List<SubCompanyDTO>> getAllSubCompanies() {
+    @GetMapping("/subcompany")
+    public ResponseEntity<?> getAllSubCompanies() {
         return ResponseEntity.ok(companyService.getAllSubCompanies());
     }
 
     @GetMapping("/store")
-    public ResponseEntity<List<StoreDTO>> getAllStores() {
+    public ResponseEntity<?> getAllStores() {
         return ResponseEntity.ok(companyService.getAllStores());
     }
 
     @GetMapping("/storeFront")
-    public ResponseEntity<List<StoreFrontDTO>> getAllStoreFronts() {
+    public ResponseEntity<?> getAllStoreFronts() {
         return ResponseEntity.ok(companyService.getAllStoreFronts());
     }
 
     @GetMapping("/counter")
-    public ResponseEntity<List<CounterDTO>> getAllCounters() {
+    public ResponseEntity<?> getAllCounters() {
         return ResponseEntity.ok(companyService.getAllCounters());
     }
 
     @GetMapping("/scanner")
-    public ResponseEntity<List<ScannerDTO>> getAllScanners() {
+    public ResponseEntity<?> getAllScanners() {
         return ResponseEntity.ok(companyService.getAllScanners());
     }
 
-    @GetMapping("/pos")
-    public ResponseEntity<List<POSTerminalDTO>> getAllPOSTerminals() {
+    @GetMapping("/posterminal")
+    public ResponseEntity<?> getAllPOSTerminals() {
         return ResponseEntity.ok(companyService.getAllPOSTerminals());
     }
 
-    @GetMapping("/drawer")
-    public ResponseEntity<List<DrawerDTO>> getAllDrawers() {
+    @GetMapping("/cashdrawer")
+    public ResponseEntity<?> getAllDrawers() {
         return ResponseEntity.ok(companyService.getAllDrawers());
     }
 }

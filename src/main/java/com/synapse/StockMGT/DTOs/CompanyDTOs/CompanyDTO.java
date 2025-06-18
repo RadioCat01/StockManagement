@@ -10,11 +10,6 @@ import java.util.Map;
 public class CompanyDTO {
     private int companyId;
     private String companyName;
-    private String companyAddress;
-    private String companyPhone;
-    private String companyEmail;
-    private String businessRegNumber;
-    private String businessLogo;
 
     private Map<String, String> customFields;
 }

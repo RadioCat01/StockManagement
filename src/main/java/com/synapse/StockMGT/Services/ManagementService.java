@@ -241,7 +241,7 @@ public class ManagementService {
                     .brand(brand.getBrandName())
                     .itemCode(itemInfo.getItemCode())
                     .serialNo(i.getSerialNumber())
-                    .currentState("Added to stock: "+store.getSubCompany().getSubCompanyName()+" - "+store.getStoreAddress())
+                    .currentState("Added to stock: "+store.getSubCompany().getSubCompanyName()+" - "+store.getStoreName())
                     .lastUpdate(LocalDate.now())
                     .build());
         }
@@ -303,11 +303,6 @@ public class ManagementService {
                 stores.add(StoreDTO.builder()
                                 .storeId(store.getStoreId())
                                 .storeName(subCompany.getSubCompanyName())
-                                .storeAddress(store.getStoreAddress())
-                                .storeEmail(store.getStoreEmail())
-                                .tel(store.getTel())
-                                .mobile(store.getMobile())
-                                .businessRegNumber(store.getBusinessRegNumber())
                                 .build());
             }
         }
