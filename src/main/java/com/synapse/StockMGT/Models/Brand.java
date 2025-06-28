@@ -1,6 +1,8 @@
 package com.synapse.StockMGT.Models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.synapse.StockMGT.CustomFields.Brand_Data;
+import com.synapse.StockMGT.CustomFields.Brand_Fields;
 import com.synapse.StockMGT.CustomFields.CustomFields_item;
 import com.synapse.StockMGT.CustomFields.CustomFields_supplier;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
@@ -46,4 +48,10 @@ public class Brand{
     @ManyToOne
     @JoinColumn(name = "subComId")
     private SubCompany subCompany;
+
+    @OneToMany(mappedBy = "brand")
+    private List<Brand_Fields> fields;
+
+    @OneToMany(mappedBy = "brand")
+    private List<Brand_Data> data;
 }

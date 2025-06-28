@@ -1,5 +1,4 @@
 angular.module('Stock').controller('CompanyCont', function($scope, $http){
-
     $scope.genericFields = [];
     $scope.inputData = {};
 
@@ -71,13 +70,13 @@ angular.module('Stock').controller('CompanyCont', function($scope, $http){
         $http.get(APP_CONFIG.apiBase +'/company/company')
             .then(function (res){
                 $scope.companies=res.data;
+                console.log($scope.companies);
                 $scope.companyHeaders = getUniqueFields($scope.companies);
-
             },function (err){
                 toastr.warning("Error fetching company Data","Warning!")
             })
 
-        $http.get(APP_CONFIG.apiBase +'/company/cashdrawer')
+        $http.get(APP_CONFIG.apiBase +'/company/drawer')
             .then(function (res){
                 $scope.drawers=res.data;
                 $scope.drawerHeaders = getUniqueFields($scope.drawers);

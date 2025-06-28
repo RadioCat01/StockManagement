@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -19,7 +20,7 @@ public class JobDTO {
     private String customerPhone;
 
     private List<JobItemsDTO> jobItems;
-    private List<CustomFields_jobs> customFields;
+    private Map<String, Object> customFields;
 
     private List<String> claimSerials;
 }

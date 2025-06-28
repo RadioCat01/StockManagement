@@ -2,7 +2,6 @@ package com.synapse.StockMGT.Controllers;
 
 import com.synapse.StockMGT.DTOs.InvoiceDTO;
 import com.synapse.StockMGT.Services.InvoiceService;
-import com.synapse.StockMGT.Services.SalesService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +41,28 @@ public class UiController {
         return "POS";
     }
 
-    @GetMapping("/addCategory")
+    @GetMapping("/category")
     public String addCategory() {
         logger.info("addCategory Page Called.");
-        return "ItemsManagement";
+        return "Category";
+    }
+
+    @GetMapping("/brand")
+    public String addBrand() {
+        logger.info("addBrandPage Called.");
+        return "Brand";
+    }
+
+    @GetMapping("/items")
+    public String items() {
+        logger.info("items Page Called.");
+        return "Items";
+    }
+
+    @GetMapping("/suppliers")
+    public String supplier() {
+        logger.info("supplier Page Called.");
+        return "Supplier";
     }
 
     @GetMapping("/sales")
@@ -69,7 +86,43 @@ public class UiController {
     @GetMapping("/company")
     public String company() {
         logger.info("company Page Called.");
-        return "CompanyMGT";
+        return "Company";
+    }
+
+    @GetMapping("/subcompany")
+    public String subCompany() {
+        logger.info("subCompany Page Called.");
+        return "SubCompany";
+    }
+    @GetMapping("/store")
+    public String Store() {
+        logger.info("store Page Called.");
+        return "Store";
+    }
+    @GetMapping("/storefront")
+    public String StoreFront() {
+        logger.info("storefront Page Called.");
+        return "StoreFront";
+    }
+    @GetMapping("/counter")
+    public String Counter() {
+        logger.info("counter Page Called.");
+        return "Counter";
+    }
+    @GetMapping("/scanner")
+    public String Scanner() {
+        logger.info("scanner Page Called.");
+        return "Scanner";
+    }
+    @GetMapping("/posTerminal")
+    public String POSTerminal() {
+        logger.info("posTerminal Page Called.");
+        return "POSTerminal";
+    }
+    @GetMapping("/drawer")
+    public String Drawer() {
+        logger.info("drawer Page Called.");
+        return "Drawer";
     }
 
     @GetMapping("/formsPage")

@@ -1,13 +1,9 @@
 package com.synapse.StockMGT.Services;
 
-import com.synapse.StockMGT.DTOs.CompanyDTOs.*;
-import com.synapse.StockMGT.DTOs.FormDTOs.DataReqDTO;
+import com.synapse.StockMGT.CustomFields.*;
 import com.synapse.StockMGT.DTOs.FormDTOs.GenericEntityDTO;
 import com.synapse.StockMGT.Enums.CounterType;
 import com.synapse.StockMGT.Models.CompanyHierarchy.*;
-import com.synapse.StockMGT.Models.CustomFields.FieldData;
-import com.synapse.StockMGT.Models.CustomFields.TemplateFields;
-import com.synapse.StockMGT.Models.CustomFields.Templates;
 import com.synapse.StockMGT.Repos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,9 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,53 +24,80 @@ public class CompanyService {
     private final PosTerminalRepo posTerminalRepo;
     private final CashDrawerRepo cashDrawerRepo;
     private final ScannerRepo scannerRepo;
-    private final TemplateRepo templateRepo;
-    private final FieldDataRepo fieldDataRepo;
+
+    private final Company_FieldsRepo  company_FieldsRepo;
+    private final Company_DataRepo company_DataRepo;
+    private final SubCom_FieldsRepo subCom_FieldsRepo;
+    private final SubCom_DataRepo subCom_DataRepo;
+    private final Store_FieldRepo storeFieldRepo;
+    private final Store_DataRepo storeDataRepo;
+    private final StoreFront_FieldRepo storeFrontFieldRepo;
+    private final StoreFront_DataRepo storeFrontDataRepo;
+    private final Counter_FieldsRepo counter_FieldsRepo;
+    private final Counter_DataRepo counter_DataRepo;
+    private final Scanner_FieldsRepo scanner_FieldsRepo;
+    private final Scanner_DataRepo scanner_DataRepo;
+    private final POS_FieldRepo posFieldRepo;
+    private final POS_DataRepo posDataRepo;
+    private final Drawer_FieldRepo drawer_FieldsRepo;
+    private final Drawer_DataRepo drawer_DataRepo;
 
     public Company createCompany(Map<String, Object> formData) {
-        Company company = Company.builder()
+        Company company = companyRepo.save(Company.builder()
                 .companyName((String) formData.get("companyName"))
-                .build();
-        companyRepo.save(company);
+                .build());
 
-        Templates template = templateRepo.findByTemplateType("Company")
-                .orElseThrow();
-
-        List<TemplateFields> fields = template.getTemplateFields();
-        for (TemplateFields field : fields) {
-            if (formData.containsKey(field.getFieldName())) {
-                FieldData data = FieldData.builder()
-                        .template(template)
-                        .customField(field)
+        List<Company_Fields> fields = company_FieldsRepo.findAll();
+        List<Company_Data> dataToSave = fields.stream()
+                .filter(field -> formData.containsKey(field.getFieldName()))
+                .map(field -> Company_Data.builder()
+                        .field(field)
                         .entityId(String.valueOf(company.getCompanyId()))
                         .formType("Company")
                         .fieldType(field.getFieldType())
                         .fieldValue(String.valueOf(formData.get(field.getFieldName())))
-                        .build();
-                fieldDataRepo.save(data);
-            }
-        }
+                        .company(company)
+                        .build())
+                .toList();
+        company_DataRepo.saveAll(dataToSave);
         return company;
     }
 
     public SubCompany createSubCompany(Map<String, Object> formData) {
-        Company company = companyRepo.findById(
-                Integer.parseInt((String) formData.get("companyId"))
-        ).orElseThrow(() -> new RuntimeException("Company Not Found"));
+        Company company = companyRepo.findById(Integer.parseInt((String) formData.get("companyId")))
+                .orElseThrow(() -> new RuntimeException("Company Not Found"));
 
-
-        SubCompany subCompany = SubCompany.builder()
+        SubCompany subCompany = subCompanyRepo.save(SubCompany.builder()
                 .subCompanyName((String) formData.get("subCompanyName"))
                 .company(company)
-                .build();
-
-        subCompanyRepo.save(subCompany);
+                .build());
         company.getSubCompanies().add(subCompany);
         companyRepo.save(company);
 
-        Templates template = templateRepo.findByTemplateType("SubCompany")
-                .orElseThrow();
-        saveCustomFields(String.valueOf(subCompany.getSubCompanyId()), "SubCompany", template, formData);
+        List<Subcompany_Fields> fields = subCom_FieldsRepo.findAll();
+
+        List<SubCompany_Data> dataToSave = fields.stream()
+                .filter(field -> formData.containsKey(field.getFieldName()))
+                .map(field -> {
+                    String fieldValue;
+                    if ("companyId".equals(field.getFieldName())) {
+                        fieldValue = company.getCompanyName();
+                    } else {
+                        fieldValue = String.valueOf(formData.get(field.getFieldName()));
+                    }
+
+                    return SubCompany_Data.builder()
+                            .field(field)
+                            .entityId(String.valueOf(subCompany.getSubCompanyId()))
+                            .formType("SubCompany")
+                            .fieldType(field.getFieldType())
+                            .fieldValue(fieldValue)
+                            .subCompany(subCompany)
+                            .build();
+                })
+                .toList();
+
+        subCom_DataRepo.saveAll(dataToSave);
 
         return subCompany;
     }
@@ -95,15 +115,39 @@ public class CompanyService {
                 .build();
 
         storeRepo.save(store);
+
         company.getStores().add(store);
         subCompany.getStores().add(store);
         companyRepo.save(company);
         subCompanyRepo.save(subCompany);
-        Templates template = templateRepo.findByTemplateType("Store").orElseThrow();
-        saveCustomFields(String.valueOf(store.getStoreId()), "Store", template, formData);
+
+        List<Store_Fields> fields = storeFieldRepo.findAll();
+        List<Store_Data> dataToSave = fields.stream()
+                .filter(field -> formData.containsKey(field.getFieldName()))
+                .map(field -> {
+                    String fieldValue;
+                    switch (field.getFieldName()) {
+                        case "companyId" -> fieldValue = company.getCompanyName();
+                        case "subCompanyId" -> fieldValue = subCompany.getSubCompanyName();
+                        default -> fieldValue = String.valueOf(formData.get(field.getFieldName()));
+                    }
+
+                    return Store_Data.builder()
+                            .field(field)
+                            .entityId(String.valueOf(store.getStoreId()))
+                            .formType("Store")
+                            .fieldType(field.getFieldType())
+                            .fieldValue(fieldValue)
+                            .store(store)
+                            .build();
+                })
+                .toList();
+
+        storeDataRepo.saveAll(dataToSave);
 
         return store;
     }
+
 
 
     public StoreFront createStoreFront(Map<String, Object> formData) {
@@ -113,7 +157,6 @@ public class CompanyService {
                 .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
 
         List<String> storeIdStrings = (List<String>) formData.get("storeIds");
-
         List<Integer> storeIds = storeIdStrings.stream()
                 .map(Integer::parseInt)
                 .toList();
@@ -142,11 +185,35 @@ public class CompanyService {
         companyRepo.save(company);
         subCompanyRepo.save(subCompany);
 
-        Templates template = templateRepo.findByTemplateType("StoreFront").orElseThrow();
-        saveCustomFields(String.valueOf(storeFront.getStorefrontId()), "StoreFront", template, formData);
+        List<StoreFront_Fields> fields = storeFrontFieldRepo.findAll();
+        List<StoreFront_Data> dataToSave = fields.stream()
+                .filter(field -> formData.containsKey(field.getFieldName()))
+                .map(field -> {
+                    String fieldValue;
+                    switch (field.getFieldName()) {
+                        case "companyId" -> fieldValue = company.getCompanyName();
+                        case "subCompanyId" -> fieldValue = subCompany.getSubCompanyName();
+                        case "storeIds" ->
+                                fieldValue = stores.stream()
+                                        .map(Store::getStoreName)
+                                        .collect(Collectors.joining(", "));
+                        default -> fieldValue = String.valueOf(formData.get(field.getFieldName()));
+                    }
+                    return StoreFront_Data.builder()
+                            .field(field)
+                            .entityId(String.valueOf(storeFront.getStorefrontId()))
+                            .formType("StoreFront")
+                            .fieldType(field.getFieldType())
+                            .fieldValue(fieldValue)
+                            .storeFront(storeFront)
+                            .build();
+                })
+                .toList();
+        storeFrontDataRepo.saveAll(dataToSave);
 
         return storeFront;
     }
+
 
 
     public Counter createCounter(Map<String, Object> formData) {
@@ -165,6 +232,7 @@ public class CompanyService {
                 .storeFront(storeFront)
                 .build();
 
+        counterRepo.save(counter);
         company.getCounters().add(counter);
         subCompany.getCounters().add(counter);
         storeFront.getCounter().add(counter);
@@ -173,11 +241,31 @@ public class CompanyService {
         subCompanyRepo.save(subCompany);
         storeFrontRepo.save(storeFront);
 
+        List<Counter_Fields> fields = counter_FieldsRepo.findAll();
+        List<Counter_Data> dataToSave = fields.stream()
+                .filter(field -> formData.containsKey(field.getFieldName()))
+                .map(field -> {
+                    String fieldValue;
+                    switch (field.getFieldName()) {
+                        case "companyId" -> fieldValue = company.getCompanyName();
+                        case "subCompanyId" -> fieldValue = subCompany.getSubCompanyName();
+                        case "storeFrontId" -> fieldValue = storeFront.getStoreFrontName();
+//                        case "storeId" -> fieldValue =
+                        default -> fieldValue = String.valueOf(formData.get(field.getFieldName()));
+                    }
 
-        Templates template = templateRepo.findByTemplateType("Counter").orElseThrow();
-        saveCustomFields(String.valueOf(counter.getCounterId()), "Counter", template, formData);
+                    return Counter_Data.builder()
+                            .field(field)
+                            .entityId(String.valueOf(counter.getCounterId()))
+                            .formType("Counter")
+                            .fieldType(field.getFieldType())
+                            .fieldValue(fieldValue)
+                            .counter(counter)
+                            .build();
+                })
+                .toList();
 
-
+        counter_DataRepo.saveAll(dataToSave);
         return counter;
     }
 
@@ -206,12 +294,34 @@ public class CompanyService {
         subCompanyRepo.save(subCompany);
         counterRepo.save(counter);
 
-        Templates template = templateRepo.findByTemplateType("Scanner").orElseThrow();
-        saveCustomFields(String.valueOf(scanner.getScannerId()), "Scanner", template, formData);
+        List<Scanner_Fields> fields = scanner_FieldsRepo.findAll();
+        List<Scanner_Data> dataToSave = fields.stream()
+                .filter(field -> formData.containsKey(field.getFieldName()))
+                .map(field -> {
+                    String fieldValue;
+                    switch (field.getFieldName()) {
+                        case "companyId" -> fieldValue = company.getCompanyName();
+                        case "subCompanyId" -> fieldValue = subCompany.getSubCompanyName();
+                        case "counterId" -> fieldValue = counter.getCounterName();
+                        case "storeFrontId" -> fieldValue = counter.getStoreFront().getStoreFrontName();
+                        default -> fieldValue = String.valueOf(formData.get(field.getFieldName()));
+                    }
 
+                    return Scanner_Data.builder()
+                            .field(field)
+                            .entityId(String.valueOf(scanner.getScannerId()))
+                            .formType("Scanner")
+                            .fieldType(field.getFieldType())
+                            .fieldValue(fieldValue)
+                            .scanner(scanner)
+                            .build();
+                })
+                .toList();
 
+        scanner_DataRepo.saveAll(dataToSave);
         return scanner;
     }
+
 
 
     public PosTerminal createPOSTerminal(Map<String, Object> formData) {
@@ -238,11 +348,34 @@ public class CompanyService {
         subCompanyRepo.save(subCompany);
         counterRepo.save(counter);
 
-        Templates template = templateRepo.findByTemplateType("POSTerminal").orElseThrow();
-        saveCustomFields(String.valueOf(terminal.getPosTerminalId()), "POSTerminal", template, formData);
+        List<POS_Fields> fields = posFieldRepo.findAll();
+        List<POS_Data> dataToSave = fields.stream()
+                .filter(field -> formData.containsKey(field.getFieldName()))
+                .map(field -> {
+                    String fieldValue;
+                    switch (field.getFieldName()) {
+                        case "companyId" -> fieldValue = company.getCompanyName();
+                        case "subCompanyId" -> fieldValue = subCompany.getSubCompanyName();
+                        case "counterId" -> fieldValue = counter.getCounterName();
+                        case "storeFrontId" -> fieldValue = counter.getStoreFront().getStoreFrontName();
+                        default -> fieldValue = String.valueOf(formData.get(field.getFieldName()));
+                    }
 
+                    return POS_Data.builder()
+                            .field(field)
+                            .entityId(String.valueOf(terminal.getPosTerminalId()))
+                            .formType("POSTerminal")
+                            .fieldType(field.getFieldType())
+                            .fieldValue(fieldValue)
+                            .posTerminal(terminal)
+                            .build();
+                })
+                .toList();
+
+        posDataRepo.saveAll(dataToSave);
         return terminal;
     }
+
 
 
     public CashDrawer createDrawer(Map<String, Object> formData) {
@@ -268,213 +401,193 @@ public class CompanyService {
         subCompanyRepo.save(subCompany);
         counterRepo.save(counter);
 
-        Templates template = templateRepo.findByTemplateType("CashDrawer").orElseThrow();
-        saveCustomFields(String.valueOf(cashDrawer.getDrawerId()), "Drawer", template, formData);
+        List<Drawer_Fields> fields = drawer_FieldsRepo.findAll();
+        List<Drawer_Data> dataToSave = fields.stream()
+                .filter(field -> formData.containsKey(field.getFieldName()))
+                .map(field -> {
+                    String fieldValue;
+                    switch (field.getFieldName()) {
+                        case "companyId" -> fieldValue = company.getCompanyName();
+                        case "subCompanyId" -> fieldValue = subCompany.getSubCompanyName();
+                        case "counterId" -> fieldValue = counter.getCounterName();
+                        case "storeFrontId" -> fieldValue = counter.getStoreFront().getStoreFrontName();
+                        default -> fieldValue = String.valueOf(formData.get(field.getFieldName()));
+                    }
 
+                    return Drawer_Data.builder()
+                            .field(field)
+                            .entityId(String.valueOf(cashDrawer.getDrawerId()))
+                            .formType("CashDrawer")
+                            .fieldType(field.getFieldType())
+                            .fieldValue(fieldValue)
+                            .drawer(cashDrawer)
+                            .build();
+                })
+                .toList();
+
+        drawer_DataRepo.saveAll(dataToSave);
         return cashDrawer;
     }
 
 
-    private void saveCustomFields(String entityId, String formType, Templates template, Map<String, Object> formData) {
-        List<TemplateFields> fields = template.getTemplateFields();
-        for (TemplateFields field : fields) {
-            FieldData data = FieldData.builder()
-                    .template(template)
-                    .customField(field)
-                    .entityId(entityId)
-                    .formType(formType)
-                    .fieldType(field.getFieldType())
-                    .build();
-            if (formData.containsKey(field.getFieldName())) {
-                switch (field.getFieldType()) {
-                    case "selectCompany" -> {
-                        int id = Integer.parseInt(formData.get(field.getFieldName()).toString());
-                        Company company = companyRepo.findById(id).orElseThrow(() -> new RuntimeException("Company Not Found"));
-                        data.setFieldValue(company.getCompanyName());
-                    }
-                    case "selectSubCompany" -> {
-                        int id = Integer.parseInt(formData.get(field.getFieldName()).toString());
-                        SubCompany subCompany = subCompanyRepo.findById(id).orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
-                        data.setFieldValue(subCompany.getSubCompanyName());
-                    }
-                    case "selectStore" -> {
-                        int id = Integer.parseInt(formData.get(field.getFieldName()).toString());
-                        Store store = storeRepo.findById(id).orElseThrow(() -> new RuntimeException("Store Not Found"));
-                        data.setFieldValue(store.getStoreName());
-                    }
-                    case "selectStores" -> {
-                        Object value = formData.get(field.getFieldName());
-                        List<Integer> ids = ((List<?>) value).stream()
-                                .map(String::valueOf)
-                                .map(Integer::parseInt)
-                                .toList();
-
-                        List<Store> stores = storeRepo.findAllById(ids);
-                        data.setFieldValue(stores.stream()
-                                .map(Store::getStoreName)
-                                .collect(Collectors.joining(", ")));
-                    }
-                    case "selectStoreFront" -> {
-                        int id = Integer.parseInt(formData.get(field.getFieldName()).toString());
-                        StoreFront front = storeFrontRepo.findById(id).orElseThrow(() -> new RuntimeException("Store Front Not Found"));
-                        data.setFieldValue(front.getStoreFrontName());
-                    }
-                    case "selectStoreCounter" -> {
-                        int id = Integer.parseInt(formData.get(field.getFieldName()).toString());
-                        Counter counter = counterRepo.findById(id).orElseThrow(() -> new RuntimeException("Counter Not Found"));
-                        data.setFieldValue(counter.getCounterName());
-                    }
-                    default -> data.setFieldValue(String.valueOf(formData.get(field.getFieldName())));
-                }
-
-                fieldDataRepo.save(data);
-            }
-        }
-    }
-
-
-
     public List<GenericEntityDTO> getAllCompanies() {
-        return convertToGenericDTO(
-                companyRepo.findAll(),
-                "Company",
-                company -> String.valueOf(company.getCompanyId()),
-                Company::getCompanyName,
-                (store, dto) -> {}
-        );
-    }
+        return companyRepo.findAll().stream().map(company -> {
+            Map<String, String> customFields = company.getData().stream()
+                    .filter(d -> d.getField() != null && !"companyName".equals(d.getField().getFieldName()))
+                    .collect(Collectors.toMap(
+                            data -> data.getField().getFieldQuestion(),
+                            Company_Data::getFieldValue
+                    ));
 
+            return GenericEntityDTO.builder()
+                    .entityId(String.valueOf(company.getCompanyId()))
+                    .companyId(company.getCompanyId())
+                    .displayName(company.getCompanyName())
+                    .customFields(customFields)
+                    .build();
+
+        }).toList();
+    }
 
     public List<GenericEntityDTO> getAllSubCompanies() {
-        return convertToGenericDTO(
-                subCompanyRepo.findAll(),
-                "SubCompany",
-                sub -> String.valueOf(sub.getSubCompanyId()),
-                SubCompany::getSubCompanyName,
-                (store, dto) -> {
-                    dto.setCompanyId(store.getSubCompanyId());
-                }
-        );
+        return subCompanyRepo.findAll().stream().map(sub -> {
+            Map<String, String> customFields = sub.getData().stream()
+                    .filter(d -> d.getField() != null && !"subCompanyName".equals(d.getField().getFieldName()))
+                    .collect(Collectors.toMap(
+                            data -> data.getField().getFieldQuestion(),
+                            SubCompany_Data::getFieldValue
+                    ));
+
+            return GenericEntityDTO.builder()
+                    .entityId(String.valueOf(sub.getSubCompanyId()))
+                    .companyId(sub.getCompany().getCompanyId())
+                    .subcompanyId(sub.getSubCompanyId())
+                    .displayName(sub.getSubCompanyName())
+                    .customFields(customFields)
+                    .build();
+        }).toList();
     }
 
     public List<GenericEntityDTO> getAllStores() {
-        return convertToGenericDTO(
-                storeRepo.findAll(),
-                "Store",
-                store -> String.valueOf(store.getStoreId()),
-                Store::getStoreName,
-                (store, dto) -> {
-                    dto.setCompanyId(store.getCompany().getCompanyId());
-                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
-                }
-        );
+        return storeRepo.findAll().stream().map(store -> {
+            Map<String, String> customFields = store.getData().stream()
+                    .filter(d -> d.getField() != null && !"storeName".equals(d.getField().getFieldName()))
+                    .collect(Collectors.toMap(
+                            data -> data.getField().getFieldQuestion(),
+                            Store_Data::getFieldValue
+                    ));
 
+            return GenericEntityDTO.builder()
+                    .entityId(String.valueOf(store.getStoreId()))
+                    .companyId(store.getCompany().getCompanyId())
+                    .subcompanyId(store.getSubCompany().getSubCompanyId())
+                    .displayName(store.getStoreName())
+                    .customFields(customFields)
+                    .build();
+        }).toList();
     }
 
     public List<GenericEntityDTO> getAllStoreFronts() {
-        return convertToGenericDTO(
-                storeFrontRepo.findAll(),
-                "StoreFront",
-                front -> String.valueOf(front.getStorefrontId()),
-                StoreFront::getStoreFrontName,
-                (store, dto) -> {
-                    dto.setCompanyId(store.getCompany().getCompanyId());
-                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
-                    dto.setStoreId(store.getStore().stream().map(Store::getStoreId).toList());
-                }
-        );
-    }
-
-    public List<GenericEntityDTO> getAllCounters() {
-        return convertToGenericDTO(
-                counterRepo.findAll(),
-                "Counter",
-                counter -> String.valueOf(counter.getCounterId()),
-                Counter::getCounterName,
-                (store, dto) -> {
-                    dto.setCompanyId(store.getCompany().getCompanyId());
-                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
-                    dto.setStorefrontId(store.getStoreFront().getStorefrontId());
-                }
-        );
-    }
-
-    public List<GenericEntityDTO> getAllScanners() {
-        return convertToGenericDTO(
-                scannerRepo.findAll(),
-                "Scanner",
-                scanner -> String.valueOf(scanner.getScannerId()),
-                Scanner::getScannerName,
-                (store, dto) -> {
-                    dto.setCompanyId(store.getCompany().getCompanyId());
-                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
-                    dto.setCounterId(store.getCounter().getCounterId());
-                }
-        );
-    }
-
-    public List<GenericEntityDTO> getAllPOSTerminals() {
-        return convertToGenericDTO(
-                posTerminalRepo.findAll(),
-                "POSTerminal",
-                pos -> String.valueOf(pos.getPosTerminalId()),
-                PosTerminal::getPosTerminalName,
-                (store, dto) -> {
-                    dto.setCompanyId(store.getCompany().getCompanyId());
-                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
-                    dto.setCounterId(store.getCounter().getCounterId());
-                }
-        );
-    }
-
-    public List<GenericEntityDTO> getAllDrawers() {
-        return convertToGenericDTO(
-                cashDrawerRepo.findAll(),
-                "CashDrawer",
-                drawer -> String.valueOf(drawer.getDrawerId()),
-                CashDrawer::getDrawerName,
-                (store, dto) -> {
-                    dto.setCompanyId(store.getCompany().getCompanyId());
-                    dto.setSubcompanyId(store.getSubCompany().getSubCompanyId());
-                    dto.setCounterId(store.getCounter().getCounterId());
-                }
-        );
-    }
-
-    private <T> List<GenericEntityDTO> convertToGenericDTO(
-            List<T> entities,
-            String templateType,
-            Function<T, String> getId,
-            Function<T, String> getDisplayName,
-            BiConsumer<T, GenericEntityDTO> populateFields
-    ) {
-        Templates template = templateRepo.findByTemplateType(templateType)
-                .orElseThrow(() -> new RuntimeException(templateType + " template not found"));
-
-        List<FieldData> allFieldData = fieldDataRepo.findByTemplate(template);
-
-        return entities.stream().map(entity -> {
-            String entityId = getId.apply(entity);
-            String displayName = getDisplayName.apply(entity);
-            Map<String, String> customFieldsMap = allFieldData.stream()
-                    .filter(fd -> entityId.equals(fd.getEntityId()))
+        return storeFrontRepo.findAll().stream().map(front -> {
+            Map<String, String> customFields = front.getData().stream()
+                    .filter(d -> d.getField() != null && !"storeFrontName".equals(d.getField().getFieldName()))
                     .collect(Collectors.toMap(
-                            fd -> fd.getCustomField().getFieldQuestion(),
-                            FieldData::getFieldValue
+                            data -> data.getField().getFieldQuestion(),
+                            StoreFront_Data::getFieldValue
                     ));
 
-            customFieldsMap.entrySet().removeIf(entry ->
-                    entry.getValue() != null && entry.getValue().equals(displayName));
-
-            GenericEntityDTO dto = GenericEntityDTO.builder()
-                    .entityId(entityId)
-                    .displayName(displayName)
-                    .customFields(customFieldsMap)
+            return GenericEntityDTO.builder()
+                    .entityId(String.valueOf(front.getStorefrontId()))
+                    .companyId(front.getCompany().getCompanyId())
+                    .subcompanyId(front.getSubCompany().getSubCompanyId())
+                    .storeId(front.getStore().stream().map(Store::getStoreId).toList())
+                    .displayName(front.getStoreFrontName())
+                    .customFields(customFields)
                     .build();
-            populateFields.accept(entity, dto);
-            return dto;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
 
+    public List<GenericEntityDTO> getAllCounters() {
+        return counterRepo.findAll().stream().map(counter -> {
+            Map<String, String> customFields = counter.getData().stream()
+                    .filter(d -> d.getField() != null && !"counterName".equals(d.getField().getFieldName()))
+                    .collect(Collectors.toMap(
+                            data -> data.getField().getFieldQuestion(),
+                            Counter_Data::getFieldValue
+                    ));
+
+            return GenericEntityDTO.builder()
+                    .entityId(String.valueOf(counter.getCounterId()))
+                    .companyId(counter.getCompany().getCompanyId())
+                    .subcompanyId(counter.getSubCompany().getSubCompanyId())
+                    .storefrontId(counter.getStoreFront().getStorefrontId())
+                    .displayName(counter.getCounterName())
+                    .customFields(customFields)
+                    .build();
+        }).toList();
+    }
+
+
+    public List<GenericEntityDTO> getAllScanners() {
+        return scannerRepo.findAll().stream().map(scanner -> {
+            Map<String, String> customFields = scanner.getData().stream()
+                    .filter(d -> d.getField() != null && !"scannerName".equals(d.getField().getFieldName()))
+                    .collect(Collectors.toMap(
+                            data -> data.getField().getFieldQuestion(),
+                            Scanner_Data::getFieldValue
+                    ));
+
+            return GenericEntityDTO.builder()
+                    .entityId(String.valueOf(scanner.getScannerId()))
+                    .companyId(scanner.getCompany().getCompanyId())
+                    .subcompanyId(scanner.getSubCompany().getSubCompanyId())
+                    .counterId(scanner.getCounter().getCounterId())
+                    .displayName(scanner.getScannerName())
+                    .customFields(customFields)
+                    .build();
+        }).toList();
+    }
+
+
+    public List<GenericEntityDTO> getAllPOSTerminals() {
+        return posTerminalRepo.findAll().stream().map(pos -> {
+            Map<String, String> customFields = pos.getData().stream()
+                    .filter(d -> d.getField() != null && !"posTerminalName".equals(d.getField().getFieldName()))
+                    .collect(Collectors.toMap(
+                            data -> data.getField().getFieldQuestion(),
+                            POS_Data::getFieldValue
+                    ));
+
+            return GenericEntityDTO.builder()
+                    .entityId(String.valueOf(pos.getPosTerminalId()))
+                    .companyId(pos.getCompany().getCompanyId())
+                    .subcompanyId(pos.getSubCompany().getSubCompanyId())
+                    .counterId(pos.getCounter().getCounterId())
+                    .displayName(pos.getPosTerminalName())
+                    .customFields(customFields)
+                    .build();
+        }).toList();
+    }
+
+
+    public List<GenericEntityDTO> getAllDrawers() {
+        return cashDrawerRepo.findAll().stream().map(drawer -> {
+            Map<String, String> customFields = drawer.getData().stream()
+                    .filter(d -> d.getField() != null && !"drawerName".equals(d.getField().getFieldName()))
+                    .collect(Collectors.toMap(
+                            data -> data.getField().getFieldQuestion(),
+                            Drawer_Data::getFieldValue
+                    ));
+
+            return GenericEntityDTO.builder()
+                    .entityId(String.valueOf(drawer.getDrawerId()))
+                    .companyId(drawer.getCompany().getCompanyId())
+                    .subcompanyId(drawer.getSubCompany().getSubCompanyId())
+                    .counterId(drawer.getCounter().getCounterId())
+                    .displayName(drawer.getDrawerName())
+                    .customFields(customFields)
+                    .build();
+        }).toList();
+    }
 }

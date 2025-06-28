@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.synapse.StockMGT.CustomFields.CustomFields_item;
+import com.synapse.StockMGT.CustomFields.ItemInfo_Data;
+import com.synapse.StockMGT.CustomFields.ItemInfo_Fields;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
 import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import lombok.*;
@@ -52,4 +54,10 @@ public class ItemInfo{
     @ManyToOne
     @JoinColumn(name = "subComId")
     private SubCompany subCompany;
+
+    @OneToMany(mappedBy = "itemInfo")
+    private List<ItemInfo_Fields> fields;
+
+    @OneToMany(mappedBy = "itemInfo")
+    private List<ItemInfo_Data> data;
 }

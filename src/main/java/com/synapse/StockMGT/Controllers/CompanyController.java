@@ -51,7 +51,7 @@ public class CompanyController {
         return ResponseEntity.ok(companyService.createPOSTerminal(dto.getFormData()));
     }
 
-    @PostMapping("/cashdrawer")
+    @PostMapping("/drawer")
     public ResponseEntity<?> createDrawer(@RequestBody DataReqDTO dto) {
         return ResponseEntity.ok(companyService.createDrawer(dto.getFormData()));
     }
@@ -92,7 +92,7 @@ public class CompanyController {
         return ResponseEntity.ok(companyService.getAllPOSTerminals());
     }
 
-    @GetMapping("/cashdrawer")
+    @GetMapping("/drawer")
     public ResponseEntity<?> getAllDrawers() {
         return ResponseEntity.ok(companyService.getAllDrawers());
     }

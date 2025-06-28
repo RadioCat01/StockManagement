@@ -5,13 +5,14 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.oned.Code128Writer;
+import com.synapse.StockMGT.CustomFields.Company_Data;
+import com.synapse.StockMGT.CustomFields.Company_Fields;
+import com.synapse.StockMGT.CustomFields.JobNote_Data;
+import com.synapse.StockMGT.CustomFields.JobNote_Fields;
 import com.synapse.StockMGT.DTOs.*;
 import com.synapse.StockMGT.Enums.JobStatus;
 import com.synapse.StockMGT.Models.*;
-import com.synapse.StockMGT.Repos.ItemRepo;
-import com.synapse.StockMGT.Repos.JobItemRepo;
-import com.synapse.StockMGT.Repos.JobNoteRepo;
-import com.synapse.StockMGT.Repos.ReplacementNoteRepo;
+import com.synapse.StockMGT.Repos.*;
 import com.synapse.StockMGT.Util.WarrantyCal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,8 @@ public class JobService {
     private final ItemRepo itemRepo;
     private final JobItemRepo jobItemRepo;
     private final ReplacementNoteRepo replacementNoteRepo;
+    private final JobNote_FieldsRepo jobNote_FieldsRepo;
+    private final JobNote_DataRepo jobNote_DataRepo;
 
     public JobResDTO addJob(JobDTO job) throws Exception {
         JobNotes note = JobNotes.builder()
@@ -60,7 +63,23 @@ public class JobService {
             item.setBarCodeImage(convertImageToBase64String(
                     generateBarcodeImage(item.getBarCode(),300,100),"png"));
         }
+
         JobNotes jobNote = jobNoteRepo.save(note);
+
+        List<JobNote_Fields> fields = jobNote_FieldsRepo.findAll();
+        List<JobNote_Data> dataToSave = fields.stream()
+                .filter(field -> job.getCustomFields().containsKey(field.getFieldName()))
+                .map(field -> JobNote_Data.builder()
+                        .field(field)
+                        .entityId(String.valueOf(jobNote.getJobNotesId()))
+                        .formType("JobNote")
+                        .fieldType(field.getFieldType())
+                        .fieldValue(String.valueOf(job.getCustomFields().get(field.getFieldName())))
+                        .jobNote(jobNote)
+                        .build())
+                .toList();
+        jobNote_DataRepo.saveAll(dataToSave);
+
         return JobResDTO.builder()
                                     .jobNumber(jobNote.getJobNumber())
                                     .jobDate(jobNote.getJobDate())

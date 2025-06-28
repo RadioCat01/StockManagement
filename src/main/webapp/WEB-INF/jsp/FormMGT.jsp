@@ -60,11 +60,39 @@
                 <ul class="menu-content">
                     <li ><a class="menu-item" href="${pageContext.request.contextPath}/inventory"><span class="menu-title" data-i18n="">Inventory</span></a>
                     </li>
-                    <li><a class="menu-item" href="${pageContext.request.contextPath}/addCategory">Stock Management</a>
+                    <li><a class="menu-item" href="#">Stock Info</a>
+                        <ul class="menu-content">
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/category"><span class="menu-title" data-i18n="">Categories</span></a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/brand">Brands</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/items">Stock</a>
+                            </li>
+                            <li ><a class="menu-item" href="${pageContext.request.contextPath}/suppliers">Suppliers</a>
+                            </li>
+                        </ul>
                     </li>
                     <li><a class="menu-item" href="${pageContext.request.contextPath}/customerJobs">Job Management</a>
                     </li>
-                    <li><a class="menu-item" href="${pageContext.request.contextPath}/company">Company Info</a>
+                    <li><a class="menu-item" href="#">Company Info</a>
+                        <ul class="menu-content">
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/company"><span class="menu-title" data-i18n="">Companies</span></a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/subcompany">SubCompanies</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/store">Store/Warehouses</a>
+                            </li>
+                            <li ><a class="menu-item" href="${pageContext.request.contextPath}/storefront">StoreFronts</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/counter">Counters</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/scanner">Scanners</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/posTerminal">POS Terminals</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/drawer">Cash Drawers</a>
+                            </li>
+                        </ul>
                     </li>
                     <li class="active"><a class="menu-item" href="${pageContext.request.contextPath}/formsPage">Forms Info</a>
                     </li>
@@ -106,26 +134,195 @@
                                 <table class="table table-striped table-bordered">
                                     <thead>
                                     <tr>
-                                        <th>ID</th>
                                         <th>Form Type</th>
                                         <th>Description</th>
                                         <th>Actions</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr ng-repeat="formType in formTypes">
-                                        <td>{{ formType.templateId }}</td>
-                                        <td>{{ formType.templateType }}</td>
-                                        <td>{{ formType.templateDescription }}</td>
+                                    <tr>
+                                        <td>Company</td>
+                                        <td>Default Company Form</td>
                                         <td>
                                             <button class="btn btn-outline-info mb-2"
                                                     data-toggle="modal"
                                                     data-target="#formsModel"
-                                                    ng-click="openFormModal(formType.templateType)">
+                                                    ng-click="openFormModal('company')">
                                                 <i class="ft-plus"></i>
                                             </button>
                                         </td>
                                     </tr>
+                                    <tr>
+                                        <td>Sub Company</td>
+                                        <td>Default Sub Company Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('subcompany')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Store</td>
+                                        <td>Default Store Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('store')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Storefront</td>
+                                        <td>Default Storefront Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('storefront')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Counter</td>
+                                        <td>Default Counter Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('counter')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Scanner</td>
+                                        <td>Default Scanner Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('scanner')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>POSTerminal</td>
+                                        <td>Default POS Terminal Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('posterminal')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cash Drawer</td>
+                                        <td>Default Cash Drawer Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('drawer')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Customer</td>
+                                        <td>Default Customer Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('customer')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Supplier</td>
+                                        <td>Default Supplier Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('supplier')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Category</td>
+                                        <td>Default Category Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('category')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Brand</td>
+                                        <td>Default Brand Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('brand')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>ItemInfo</td>
+                                        <td>Default ItemInfo Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('itemInfo')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>Item</td>
+                                        <td>Default Item Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('item')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Job Notes</td>
+                                        <td>Default Job Note Form</td>
+                                        <td>
+                                            <button class="btn btn-outline-info mb-2"
+                                                    data-toggle="modal"
+                                                    data-target="#formsModel"
+                                                    ng-click="openFormModal('jobnotes')">
+                                                <i class="ft-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+
                                     </tbody>
                                 </table>
 
@@ -173,7 +370,7 @@
                                 <input type="text" class="form-control" ng-model="newField.fieldName" placeholder="Enter field name">
                             </div>
                             <div class="form-group col-md-4">
-                                <label>Field Question</label>
+                                <label>Field Label</label>
                                 <input type="text" class="form-control" ng-model="newField.fieldQuestion" placeholder="Enter field name">
                             </div>
                             <div class="form-group col-md-4">

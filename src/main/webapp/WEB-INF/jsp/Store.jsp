@@ -60,11 +60,39 @@
         <ul class="menu-content">
           <li ><a class="menu-item" href="${pageContext.request.contextPath}/inventory"><span class="menu-title" data-i18n="">Inventory</span></a>
           </li>
-          <li><a class="menu-item" href="${pageContext.request.contextPath}/addCategory">Stock Management</a>
+          <li><a class="menu-item" href="#">Stock Info</a>
+            <ul class="menu-content">
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/category"><span class="menu-title" data-i18n="">Categories</span></a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/brand">Brands</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/items">Stock</a>
+              </li>
+              <li ><a class="menu-item" href="${pageContext.request.contextPath}/suppliers">Suppliers</a>
+              </li>
+            </ul>
           </li>
           <li><a class="menu-item" href="${pageContext.request.contextPath}/customerJobs">Job Management</a>
           </li>
-          <li class="active"><a class="menu-item" href="${pageContext.request.contextPath}/company">Company Info</a>
+          <li><a class="menu-item" href="#">Company Info</a>
+            <ul class="menu-content">
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/company"><span class="menu-title" data-i18n="">Companies</span></a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/subcompany">SubCompanies</a>
+              </li>
+              <li class="active"><a class="menu-item" href="${pageContext.request.contextPath}/store">Store/Warehouses</a>
+              </li>
+              <li ><a class="menu-item" href="${pageContext.request.contextPath}/storefront">StoreFronts</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/counter">Counters</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/scanner">Scanners</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/posTerminal">POS Terminals</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/drawer">Cash Drawers</a>
+              </li>
+            </ul>
           </li>
           <li><a class="menu-item" href="${pageContext.request.contextPath}/formsPage">Forms Info</a>
           </li>
@@ -90,74 +118,10 @@
     <div class="content-wrapper-before"></div>
     <div class="content-header row">
       <div class="content-header-left col-md-4 col-12 mb-2">
-        <h3 class="content-header-title">Company Management</h3>
+        <h3 class="content-header-title">Sales Information</h3>
       </div>
     </div>
     <div class="content-body">
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header">
-              <h4 class="card-title">Company Info</h4>
-              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-            </div>
-            <div class="card-content collapse show">
-              <div class="card-body card-dashboard">
-                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('company')">Add Company<i class="ft-plus"></i></button>
-                <table class="table table-bordered table-striped mt-4">
-                  <thead>
-                  <tr>
-                    <th>Company Name</th>
-                    <th ng-repeat="field in companyHeaders">{{ field }}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr ng-repeat="entity in companies">
-                    <td>{{ entity.displayName }}</td>
-                    <td ng-repeat="field in companyHeaders">
-                      {{ entity.customFields[field] || '' }}
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header">
-              <h4 class="card-title">SubCompany Info</h4>
-              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-            </div>
-            <div class="card-content collapse show">
-              <div class="card-body card-dashboard">
-                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('subcompany')">Add SubCompany<i class="ft-plus"></i></button>
-                <table class="table table-bordered table-striped mt-4">
-                  <thead>
-                  <tr>
-                    <th>Sub Company Name</th>
-                    <th ng-repeat="field in subCompanyHeaders">{{ field }}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr ng-repeat="entity in subCompanies">
-                    <td>{{ entity.displayName }}</td>
-                    <td ng-repeat="field in subCompanyHeaders">
-                      {{ entity.customFields[field] || '' }}
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div class="row">
         <div class="col-12">
@@ -192,173 +156,8 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header">
-              <h4 class="card-title">Store Front Info</h4>
-              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-            </div>
-            <div class="card-content collapse show">
-              <div class="card-body card-dashboard">
-                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('storefront')">Add Storefront<i class="ft-plus"></i></button>
-                <table class="table table-bordered table-striped mt-4">
-                  <thead>
-                  <tr>
-                    <th>Store Front Name</th>
-                    <th ng-repeat="field in storeFrontHeaders">{{ field }}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr ng-repeat="entity in storeFronts">
-                    <td>{{ entity.displayName }}</td>
-                    <td ng-repeat="field in storeFrontHeaders">
-                      {{ entity.customFields[field] || '' }}
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header">
-              <h4 class="card-title">Counter Info</h4>
-              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-            </div>
-            <div class="card-content collapse show">
-              <div class="card-body card-dashboard">
-                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('counter')">Add Counter<i class="ft-plus"></i></button>
-                <table class="table table-bordered table-striped mt-4">
-                  <thead>
-                  <tr>
-                    <th>Counter Name</th>
-                    <th ng-repeat="field in countersHeaders">{{ field }}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr ng-repeat="entity in counters">
-                    <td>{{ entity.displayName }}</td>
-                    <td ng-repeat="field in countersHeaders">
-                      {{ entity.customFields[field] || '' }}
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header">
-              <h4 class="card-title">Scanner Info</h4>
-              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-            </div>
-            <div class="card-content collapse show">
-              <div class="card-body card-dashboard">
-                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('scanner')">Add Scanner<i class="ft-plus"></i></button>
-                <table class="table table-bordered table-striped mt-4">
-                  <thead>
-                  <tr>
-                    <th>Scanner Name</th>
-                    <th ng-repeat="field in scannerHeaders">{{ field }}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr ng-repeat="entity in scanner">
-                    <td>{{ entity.displayName }}</td>
-                    <td ng-repeat="field in scannerHeaders">
-                      {{ entity.customFields[field] || '' }}
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header">
-              <h4 class="card-title">POS terminal Info</h4>
-              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-            </div>
-            <div class="card-content collapse show">
-              <div class="card-body card-dashboard">
-                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('POSTerminal')">Add POS Terminal<i class="ft-plus"></i></button>
-                <table class="table table-bordered table-striped mt-4">
-                  <thead>
-                  <tr>
-                    <th>POS Terminal Name</th>
-                    <th ng-repeat="field in posTerminalHeaders">{{ field }}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr ng-repeat="entity in posTerminals">
-                    <td>{{ entity.displayName }}</td>
-                    <td ng-repeat="field in posTerminalHeaders">
-                      {{ entity.customFields[field] || '' }}
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header">
-              <h4 class="card-title">Cash Drawer Info</h4>
-              <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-            </div>
-            <div class="card-content collapse show">
-              <div class="card-body card-dashboard">
-                <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('CashDrawer')">Add Cash Drawer<i class="ft-plus"></i></button>
-                <table class="table table-bordered table-striped mt-4">
-                  <thead>
-                  <tr>
-                    <th>Cash Drawer Name</th>
-                    <th ng-repeat="field in drawerHeaders">{{ field }}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr ng-repeat="entity in drawers">
-                    <td>{{ entity.displayName }}</td>
-                    <td ng-repeat="field in drawerHeaders">
-                      {{ entity.customFields[field] || '' }}
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
-
 
   <!--//////// Generic Modal ////// -->
   <div class="modal fade text-left" id="addGenericDataModal" tabindex="-1" role="dialog" aria-labelledby="addCompanyDataLabel" aria-hidden="true">
@@ -471,7 +270,6 @@
       </div>
     </div>
   </div>
-
 
 </div>
 <%@include file="../jspf/Footer.jspf" %>

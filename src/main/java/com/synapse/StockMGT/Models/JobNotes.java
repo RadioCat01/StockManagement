@@ -3,6 +3,8 @@ package com.synapse.StockMGT.Models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.synapse.StockMGT.CustomFields.CustomFields_customer;
 import com.synapse.StockMGT.CustomFields.CustomFields_jobs;
+import com.synapse.StockMGT.CustomFields.JobNote_Data;
+import com.synapse.StockMGT.CustomFields.JobNote_Fields;
 import com.synapse.StockMGT.Enums.JobStatus;
 import com.synapse.StockMGT.Enums.JobTypes;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
@@ -62,4 +64,10 @@ public class JobNotes{
     @ManyToOne
     @JoinColumn(name = "subComId")
     private SubCompany subCompany;
+
+    @OneToMany(mappedBy = "jobNote")
+    private List<JobNote_Fields> fields;
+
+    @OneToMany(mappedBy = "jobNote")
+    private List<JobNote_Data> data;
 }

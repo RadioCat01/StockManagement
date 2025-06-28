@@ -1,18 +1,21 @@
-package com.synapse.StockMGT.Models.CustomFields;
+package com.synapse.StockMGT.CustomFields;
 
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
 import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "TemplateFields")
+@Table(name = "CompanyFields")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class TemplateFields {
+public class Company_Fields {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer fieldId;
@@ -22,10 +25,10 @@ public class TemplateFields {
     private String fieldQuestion;
     private Boolean isMandatory;
 
-    @ManyToOne
-    @JoinColumn(name = "templateId")
-    private Templates template;
+    @OneToMany(mappedBy = "field")
+    private List<Company_Data> data;
 
-    @OneToMany(mappedBy = "customField")
-    private List<FieldData> fieldDataList;
+    @ManyToOne
+    @JoinColumn(name = "companyId")
+    private Company company;
 }

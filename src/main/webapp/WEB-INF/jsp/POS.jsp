@@ -104,11 +104,39 @@
                 <ul class="menu-content">
                     <li class=" nav-item"><a href="${pageContext.request.contextPath}/inventory"><span class="menu-title" data-i18n="">Inventory</span></a>
                     </li>
-                    <li><a class="menu-item" href="${pageContext.request.contextPath}/addCategory">Stock Management</a>
+                    <li><a class="menu-item" href="#">Stock Info</a>
+                        <ul class="menu-content">
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/category"><span class="menu-title" data-i18n="">Categories</span></a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/brand">Brands</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/items">Stock</a>
+                            </li>
+                            <li ><a class="menu-item" href="${pageContext.request.contextPath}/suppliers">Suppliers</a>
+                            </li>
+                        </ul>
                     </li>
                     <li><a class="menu-item" href="${pageContext.request.contextPath}/customerJobs">Job Management</a>
                     </li>
-                    <li><a class="menu-item" href="${pageContext.request.contextPath}/company">Company Info</a>
+                    <li><a class="menu-item" href="#">Company Info</a>
+                        <ul class="menu-content">
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/company"><span class="menu-title" data-i18n="">Companies</span></a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/subcompany">SubCompanies</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/store">Store/Warehouses</a>
+                            </li>
+                            <li ><a class="menu-item" href="${pageContext.request.contextPath}/storefront">StoreFronts</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/counter">Counters</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/scanner">Scanners</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/posTerminal">POS Terminals</a>
+                            </li>
+                            <li><a class="menu-item" href="${pageContext.request.contextPath}/drawer">Cash Drawers</a>
+                            </li>
+                        </ul>
                     </li>
                     <li><a class="menu-item" href="${pageContext.request.contextPath}/formsPage">Forms Info</a>
                     </li>

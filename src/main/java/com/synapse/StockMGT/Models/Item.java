@@ -2,6 +2,8 @@ package com.synapse.StockMGT.Models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.synapse.StockMGT.CustomFields.Item_Data;
+import com.synapse.StockMGT.CustomFields.Item_Fields;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Store;
 import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
@@ -9,6 +11,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "Item")
@@ -60,4 +63,10 @@ public class Item{
     @ManyToOne
     @JoinColumn(name = "subComId")
     private SubCompany subCompany;
+
+    @OneToMany(mappedBy = "item")
+    private List<Item_Fields> fields;
+
+    @OneToMany(mappedBy = "item")
+    private List<Item_Data> data;
 }

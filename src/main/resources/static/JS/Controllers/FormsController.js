@@ -1,5 +1,4 @@
 angular.module('Stock').controller('FormsCont', function($scope, $http){
-    $scope.formTypes = [];
     $scope.entityFields = [];
     $scope.newField={
         templateId:0,
@@ -20,15 +19,17 @@ angular.module('Stock').controller('FormsCont', function($scope, $http){
                 if ($scope.entityFields.length > 0) {
                     $scope.newField.templateId = $scope.entityFields[0].templateId;
                 }
+                console.log("called");
             },function (err){
-                toastr.warning("Error Fetching company Form","Warning!")
+                toastr.warning("Error Fetching Form Data","Warning!")
             });
     };
 
     $scope.addFieldToForm = function () {
+        console.log("called");
         if (!$scope.newField || !$scope.newField.fieldName) return;
 
-        $http.post(APP_CONFIG.apiBase + '/forms', $scope.newField)
+        $http.post(APP_CONFIG.apiBase + '/forms/'+$scope.activeFormType.toLowerCase(), $scope.newField)
             .then(function () {
                 toastr.success("Field added to " + $scope.activeFormType);
                 $scope.openFormModal($scope.activeFormType);
@@ -37,15 +38,6 @@ angular.module('Stock').controller('FormsCont', function($scope, $http){
                 toastr.error("Failed to add field");
             });
     };
-
-    function getTemplates(){
-        $http.get(APP_CONFIG.apiBase +'/forms/templates')
-            .then(function (res){
-                $scope.formTypes = res.data;
-            },function (err){
-                toastr.error("Failed to fetch templates");
-            })
-    }
 
     function clearFields(){
         $scope.newField={
@@ -56,5 +48,4 @@ angular.module('Stock').controller('FormsCont', function($scope, $http){
         };
     }
 
-    getTemplates();
 });

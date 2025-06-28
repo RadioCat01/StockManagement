@@ -2,11 +2,9 @@ package com.synapse.StockMGT.Models.CompanyHierarchy;
 
 import com.synapse.StockMGT.CustomFields.*;
 import com.synapse.StockMGT.Models.*;
-import com.synapse.StockMGT.Models.CustomFields.Templates;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -22,6 +20,12 @@ public class Company {
     private Integer companyId;
 
     private String companyName;
+
+    @OneToMany(mappedBy = "company", fetch = FetchType.EAGER)
+    private List<Company_Fields> fields;
+
+    @OneToMany(mappedBy = "company")
+    private List<Company_Data>  data;
 
     @OneToMany(mappedBy = "company")
     private List<SubCompany> subCompanies;
@@ -113,6 +117,4 @@ public class Company {
     @OneToMany(mappedBy = "company")
     private List<CustomFields_supplier> customFieldsSuppliers;
 
-    @OneToMany(mappedBy = "company")
-    private List<Templates> templates;
 }

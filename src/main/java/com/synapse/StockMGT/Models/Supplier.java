@@ -2,6 +2,8 @@ package com.synapse.StockMGT.Models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.synapse.StockMGT.CustomFields.CustomFields_supplier;
+import com.synapse.StockMGT.CustomFields.Supplier_Data;
+import com.synapse.StockMGT.CustomFields.Supplier_Fields;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
 import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import lombok.*;
@@ -44,6 +46,12 @@ public class Supplier{
     @JoinColumn(name = "customId")
     @Builder.Default
     private List<CustomFields_supplier> customFields = new ArrayList<>();
+
+    @OneToMany(mappedBy = "supplier")
+    private List<Supplier_Fields> supplierFields;
+
+    @OneToMany(mappedBy = "supplier")
+    private List<Supplier_Data> supplierData;
 
     @ManyToOne
     @JoinColumn(name = "companyId")

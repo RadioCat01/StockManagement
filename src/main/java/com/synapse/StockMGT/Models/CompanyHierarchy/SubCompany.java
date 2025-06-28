@@ -3,7 +3,6 @@ package com.synapse.StockMGT.Models.CompanyHierarchy;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.synapse.StockMGT.CustomFields.*;
 import com.synapse.StockMGT.Models.*;
-import com.synapse.StockMGT.Models.CustomFields.Templates;
 import lombok.*;
 
 import javax.persistence.*;
@@ -27,6 +26,9 @@ public class SubCompany{
     @JoinColumn(name = "companyId")
     @JsonIgnore
     private Company company;
+
+    @OneToMany(mappedBy = "subCompany")
+    private List<SubCompany_Data> data;
 
     @OneToMany(mappedBy = "subCompany",cascade = CascadeType.ALL)
     private List<Store> stores;
@@ -116,5 +118,5 @@ public class SubCompany{
     private List<CustomFields_supplier> customFieldsSuppliers;
 
     @OneToMany(mappedBy = "subCompany")
-    private List<Templates> templates;
+    private List<Subcompany_Fields>  subcompanyFields;
 }

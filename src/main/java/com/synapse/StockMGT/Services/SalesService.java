@@ -30,7 +30,7 @@ public class SalesService {
 
     public List<SaleItemDTO> getItems() {
         List<SaleItemDTO> salesItems = new ArrayList<>();
-        int posTerminalID = 2;
+        int posTerminalID = 1;
         PosTerminal pos = posTerminalRepo.findById(posTerminalID).orElseThrow(() -> new RuntimeException("PosTerminal not found"));
 
         List<Item> items = pos.getCounter().getStoreFront()

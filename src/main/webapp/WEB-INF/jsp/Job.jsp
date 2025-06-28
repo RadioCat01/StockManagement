@@ -89,11 +89,39 @@
         <ul class="menu-content">
           <li ><a class="menu-item" href="${pageContext.request.contextPath}/inventory"><span class="menu-title" data-i18n="">Inventory</span></a>
           </li>
-          <li><a class="menu-item" href="${pageContext.request.contextPath}/addCategory">Stock Management</a>
+          <li><a class="menu-item" href="#">Stock Info</a>
+            <ul class="menu-content">
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/category"><span class="menu-title" data-i18n="">Categories</span></a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/brand">Brands</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/items">Stock</a>
+              </li>
+              <li ><a class="menu-item" href="${pageContext.request.contextPath}/suppliers">Suppliers</a>
+              </li>
+            </ul>
           </li>
           <li class="active"><a class="menu-item" href="${pageContext.request.contextPath}/customerJobs">Job Management</a>
           </li>
-          <li><a class="menu-item" href="${pageContext.request.contextPath}/company">Company Info</a>
+          <li><a class="menu-item" href="#">Company Info</a>
+            <ul class="menu-content">
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/company"><span class="menu-title" data-i18n="">Companies</span></a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/subcompany">SubCompanies</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/store">Store/Warehouses</a>
+              </li>
+              <li ><a class="menu-item" href="${pageContext.request.contextPath}/storefront">StoreFronts</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/counter">Counters</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/scanner">Scanners</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/posTerminal">POS Terminals</a>
+              </li>
+              <li><a class="menu-item" href="${pageContext.request.contextPath}/drawer">Cash Drawers</a>
+              </li>
+            </ul>
           </li>
           <li><a class="menu-item" href="${pageContext.request.contextPath}/formsPage">Forms Info</a>
           </li>
@@ -296,33 +324,6 @@
                   <div class="modal-body">
                     <form class="form needs-validation" ng-submit="addJob()" novalidate>
                       <div class="form-body">
-                        <div class="form-group d-flex justify-content-end">
-                          <div class="dropdown">
-                            <button class="btn btn-outline-info dropdown-toggle" type="button"
-                                    id="customFieldsDropdown" data-toggle="dropdown"
-                                    aria-haspopup="true" aria-expanded="false">
-                              Fields
-                            </button>
-
-                            <!-- Dropdown Menu with Checkboxes -->
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="customFieldsDropdown">
-                              <div class="form-check">
-                                <input class="form-check-input" type="checkbox"
-                                       ng-model="supplierCustom.taxId.enabled"
-                                       ng-change="toggleCustomField('taxId')"
-                                       id="taxIdCheckbox">
-                                <label class="form-check-label" for="taxIdCheckbox">Vat Number</label>
-                              </div>
-                              <div class="form-check">
-                                <input class="form-check-input" type="checkbox"
-                                       ng-model="supplierCustom.bankDetails.enabled"
-                                       ng-change="toggleCustomField('bankDetails')"
-                                       id="BankDetailsCheckbox">
-                                <label class="form-check-label" for="bankDetailsCheckbox">Bank Details</label>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
 
                         <div class="d-flex" style="position: relative; gap: 2rem;">
                           <div class="col-md-6 flex-fill">
@@ -441,7 +442,7 @@
                               <!-- Remaining Seller Warranty -->
                               <div style="display: flex; flex-direction: column; flex: 1; min-width: 180px;">
                                 <label for="remainingSellerWarranty" style="margin-bottom: 0.25rem;">
-                                  Remaining Seller Warranty
+                                  Seller Warranty
                                 </label>
                                 <div class="position-relative has-icon-left">
                                   <input type="text" id="remainingSellerWarranty" class="form-control"
@@ -456,7 +457,7 @@
                               <!-- Remaining Supplier Warranty -->
                               <div style="display: flex; flex-direction: column; flex: 1; min-width: 180px;">
                                 <label for="remainingSupplierWarranty" style="margin-bottom: 0.25rem;">
-                                  Remaining Supplier Warranty
+                                  Supplier Warranty
                                 </label>
                                 <div class="position-relative has-icon-left">
                                   <input type="text" id="remainingSupplierWarranty" class="form-control"
@@ -475,35 +476,97 @@
 
                             </div>
 
-                            <div class="row">
-                              <div class="col-md-6" ng-if="supplierCustom.taxId.enabled">
-                                <div class="form-group">
-                                  <label for="taxId">Vat Number</label>
-                                  <div class="position-relative has-icon-left">
-                                    <input type="text" id="taxId" class="form-control"
-                                           ng-model="supplierCustom.taxId.value"
-                                           placeholder="Supplier Vat Number">
-                                    <div class="form-control-position">
-                                      <i class="la la-id-card"></i>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
+                            <div class="form-row mt-1" ng-repeat="field in genericFields">
 
-                              <div class="col-md-6" ng-if="supplierCustom.bankDetails.enabled">
-                                <div class="form-group">
-                                  <label for="Bank Details">Bank Details</label>
-                                  <div class="position-relative has-icon-left">
-                                    <input type="text" id="bankDetails" class="form-control"
-                                           ng-model="supplierCustom.bankDetails.value"
-                                           placeholder="Supplier Bank Details">
-                                    <div class="form-control-position">
-                                      <i class="la la-id-card"></i>
-                                    </div>
+                              <div class="form-group col-md-12">
+                                <label>{{field.fieldQuestion}} <span class="text-danger" ng-if="field.mandatory">*</span></label>
+
+                                <!-- Text / Number / Date -->
+                                <input ng-if="field.fieldType === 'text' || field.fieldType === 'number' || field.fieldType === 'date'"
+                                       type="{{field.fieldType}}"
+                                       class="form-control"
+                                       ng-model="jobDTO.customFields[field.fieldName]"
+                                       ng-required="field.mandatory">
+
+                                <!-- Textarea -->
+                                <textarea ng-if="field.fieldType === 'textarea'"
+                                          class="form-control"
+                                          ng-model="jobDTO.customFields[field.fieldName]"
+                                          ng-required="field.mandatory"></textarea>
+
+                                <!-- Checkbox -->
+                                <input ng-if="field.fieldType === 'checkbox'"
+                                       type="checkbox"
+                                       class="form-check-input"
+                                       ng-model="jobDTO.customFields[field.fieldName]">
+
+                                <select ng-if="field.fieldType === 'selectCompany'"
+                                        class="form-control"
+                                        ng-model="jobDTO.customFields[field.fieldName]"
+                                        ng-options="company.entityId as company.displayName for company in companies"
+                                        ng-change="selectCompany(inputData[field.fieldName])"
+                                        ng-required="field.mandatory">
+                                  <option value="" disabled selected>Select</option>
+                                </select>
+
+                                <select ng-if="field.fieldType === 'selectSubCompany'"
+                                        class="form-control"
+                                        ng-model="jobDTO.customFields[field.fieldName]"
+                                        ng-options="subCompany.entityId as subCompany.displayName for subCompany in selectedSubCompanies"
+                                        ng-change="selectSubCompany(inputData[field.fieldName])"
+                                        ng-required="field.mandatory">
+                                  <option value="" disabled>Select</option>
+                                </select>
+
+                                <div ng-if="field.fieldType === 'selectStores'">
+                                  <select multiple size="5"
+                                          class="form-control"
+                                          ng-model="jobDTO.customFields[field.fieldName]"
+                                          ng-options="store.entityId as store.displayName for store in selectedStores"
+                                          ng-required="field.mandatory">
+                                  </select>
+                                </div>
+
+                                <select ng-if="field.fieldType === 'selectStore'"
+                                        class="form-control"
+                                        ng-model="jobDTO.customFields[field.fieldName]"
+                                        ng-options="store.entityId as store.displayName for store in selectedStores"
+                                        ng-change="selectStore(inputData[field.fieldName])"
+                                        ng-required="field.mandatory">
+                                  <option value="" disabled>Select</option>
+                                </select>
+
+                                <select ng-if="field.fieldType === 'selectStoreFront'"
+                                        class="form-control"
+                                        ng-model="jobDTO.customFields[field.fieldName]"
+                                        ng-options="storeFront.entityId as storeFront.displayName for storeFront in selectedStoreFronts"
+                                        ng-change="selectStoreFront(inputData[field.fieldName])"
+                                        ng-required="field.mandatory">
+                                  <option value="" disabled>Select</option>
+                                </select>
+
+                                <select ng-if="field.fieldType === 'selectStoreCounter'"
+                                        class="form-control"
+                                        ng-model="jobDTO.customFields[field.fieldName]"
+                                        ng-options="counter.entityId as counter.displayName for counter in selectedCounters"
+                                        ng-required="field.mandatory">
+                                  <option value="" disabled>Select</option>
+                                </select>
+
+                                <!-- Radio Button (example with Yes/No) -->
+                                <div ng-if="field.fieldType === 'radio'">
+                                  <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" ng-model="jobDTO.customFields[field.fieldName]" value="Yes">
+                                    <label class="form-check-label">Yes</label>
+                                  </div>
+                                  <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" ng-model="jobDTO.customFields[field.fieldName]" value="No">
+                                    <label class="form-check-label">No</label>
                                   </div>
                                 </div>
                               </div>
                             </div>
+
                           </div>
 
                           <div class="col-md-6 flex-fill" >

@@ -3,6 +3,8 @@ package com.synapse.StockMGT.Models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.synapse.StockMGT.CustomFields.CustomFields_customer;
 import com.synapse.StockMGT.CustomFields.CustomFields_item;
+import com.synapse.StockMGT.CustomFields.Customer_Data;
+import com.synapse.StockMGT.CustomFields.Customer_Fields;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
 import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import lombok.*;
@@ -43,5 +45,9 @@ public class Customers{
     @JoinColumn(name = "subComId")
     private SubCompany subCompany;
 
+    @OneToMany(mappedBy = "customer")
+    private List<Customer_Fields> items;
 
+    @OneToMany(mappedBy = "customer")
+    private List<Customer_Data> data;
 }

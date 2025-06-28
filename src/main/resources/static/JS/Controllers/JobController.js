@@ -9,7 +9,7 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
         customerName:'',
         customerPhone:'',
         jobItems:[],
-        customFields:[],
+        customFields:{},
         claimSerials:[]
     }
     $scope.jobItem={
@@ -446,6 +446,32 @@ angular.module('Stock').controller('JobController', function ($scope, $http,$tim
             },function (err){})
     }
 
+    function getJobFields() {
+        $http.get(APP_CONFIG.apiBase + '/forms/jobnotes')
+            .then(function (res) {
+                const allFields = res.data;
+                const excludedFields = [
+                    "companyId",
+                    "subCompanyId",
+                    "jobNumber",
+                    "jobDate",
+                    "jobType",
+                    "invoicedDate",
+                    "invoiceNumber",
+                    "status",
+                    "customerName",
+                    "customerPhone"
+                ];
+                $scope.genericFields = allFields.filter(field => !excludedFields.includes(field.fieldName));
+
+                console.log($scope.genericFields);
+            }, function () {
+                toastr.warning("Failed to load form fields", "Warning!");
+            });
+    }
+
+
+    getJobFields();
     getDefectItems();
     getReplacementNotes();
     getJobs();

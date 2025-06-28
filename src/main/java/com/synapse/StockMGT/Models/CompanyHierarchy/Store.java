@@ -3,6 +3,8 @@ package com.synapse.StockMGT.Models.CompanyHierarchy;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.synapse.StockMGT.CustomFields.Store_Data;
+import com.synapse.StockMGT.CustomFields.Store_Fields;
 import com.synapse.StockMGT.Models.Item;
 import lombok.*;
 
@@ -36,6 +38,12 @@ public class Store{
     @OneToMany(mappedBy = "store")
     @JsonManagedReference(value = "store")
     private List<Item> items;
+
+    @OneToMany(mappedBy = "store")
+    private List<Store_Fields> fields;
+
+    @OneToMany(mappedBy = "store")
+    private List<Store_Data> data;
 
     @ManyToOne
     @JoinColumn(name = "companyId")

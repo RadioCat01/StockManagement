@@ -2,6 +2,8 @@ package com.synapse.StockMGT.Models.CompanyHierarchy;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.synapse.StockMGT.CustomFields.StoreFront_Data;
+import com.synapse.StockMGT.CustomFields.StoreFront_Fields;
 import lombok.*;
 
 import javax.persistence.*;
@@ -28,6 +30,12 @@ public class StoreFront{
 
     @OneToMany(mappedBy = "storeFront", cascade = CascadeType.ALL)
     private List<Counter>  counter;
+
+    @OneToMany(mappedBy = "storeFront")
+    private List<StoreFront_Fields> fields;
+
+    @OneToMany(mappedBy = "storeFront")
+    private List<StoreFront_Data> data;
 
     @ManyToOne
     @JoinColumn(name = "companyId")

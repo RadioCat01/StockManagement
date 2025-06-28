@@ -1,6 +1,8 @@
 package com.synapse.StockMGT.Models.CompanyHierarchy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.synapse.StockMGT.CustomFields.Counter_Data;
+import com.synapse.StockMGT.CustomFields.Counter_Fields;
 import com.synapse.StockMGT.Enums.CounterType;
 import lombok.*;
 
@@ -29,6 +31,9 @@ public class Counter {
     @JsonIgnore
     private StoreFront storeFront;
 
+    @OneToMany(mappedBy = "counter")
+    private List<Counter_Data> data;
+
     @OneToMany(mappedBy = "counter", cascade = CascadeType.ALL)
     private List<Scanner> scanners;
 
@@ -37,6 +42,9 @@ public class Counter {
 
     @OneToMany(mappedBy = "counter",cascade = CascadeType.ALL)
     private List<CashDrawer> cashDrawers;
+
+    @OneToMany(mappedBy = "counter")
+    private List<Counter_Fields> fields;
 
     @ManyToOne
     @JoinColumn(name = "companyId")

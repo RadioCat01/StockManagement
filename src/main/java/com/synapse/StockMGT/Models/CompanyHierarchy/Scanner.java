@@ -1,9 +1,12 @@
 package com.synapse.StockMGT.Models.CompanyHierarchy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.synapse.StockMGT.CustomFields.Scanner_Data;
+import com.synapse.StockMGT.CustomFields.Scanner_Fields;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "Scanner")
@@ -19,6 +22,12 @@ public class Scanner{
 
     private String scannerName;
     private String scannerSerial;
+
+    @OneToMany(mappedBy = "scanner")
+    private List<Scanner_Fields> fields;
+
+    @OneToMany(mappedBy = "scanner")
+    private List<Scanner_Data> data;
 
     @ManyToOne
     @JoinColumn(name = "counterId")

@@ -37,7 +37,7 @@ public class Security {
                 ).formLogin(form->form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/addCategory", true)
+                        .defaultSuccessUrl("/inventory", true)
                         .permitAll())
                 .httpBasic(Customizer.withDefaults())
                 .build();

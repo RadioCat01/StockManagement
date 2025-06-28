@@ -296,17 +296,11 @@ public class ManagementService {
     }
 
     public List<StoreDTO> getStores() {
-        List<StoreDTO> stores = new ArrayList<>();
-        List<SubCompany> subCompanies = subComRepo.findAll();
-        for(SubCompany subCompany : subCompanies){
-            for (Store store : subCompany.getStores()) {
-                stores.add(StoreDTO.builder()
-                                .storeId(store.getStoreId())
-                                .storeName(subCompany.getSubCompanyName())
-                                .build());
-            }
-        }
-        return stores;
+        return storeRepo.findAll().stream().map(st ->
+                StoreDTO.builder()
+                        .storeId(st.getStoreId())
+                        .storeName(st.getStoreName())
+                        .build()).toList();
     }
 
     public List<CategoryDTO> getCategories() {

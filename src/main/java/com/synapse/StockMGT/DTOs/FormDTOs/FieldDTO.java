@@ -10,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FieldDTO {
-    private int templateId;
+    private int entityId;
     private String fieldName;
     private String fieldType;
     private String fieldQuestion;
