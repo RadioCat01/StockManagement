@@ -9,10 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.synapse</groupId>
-	<artifactId>StockMGT</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>Stockmgt</artifactId>
 	<packaging>war</packaging>
-	<name>StockMGT</name>
+	<name>StockMgt</name>
 	<description>Stock Management Application</description>
 	<url/>
 	<licenses>

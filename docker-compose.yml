@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mysql:
     image: mysql:latest
-    container_name: StockMGT_SQL
+    container_name: mysqldb
     ports:
       - "3306:3306"
     expose:

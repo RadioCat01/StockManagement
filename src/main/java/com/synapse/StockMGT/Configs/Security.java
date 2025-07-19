@@ -27,7 +27,6 @@ public class Security {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(
-                               // new AntPathRequestMatcher("/**"),
                                 new AntPathRequestMatcher("/resources/images/USCOM.png"),
                                 new AntPathRequestMatcher("/app-assets/**"),
                                 new AntPathRequestMatcher("/JS/**"),
