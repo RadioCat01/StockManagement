@@ -1,19 +1,19 @@
 # Remote Deployment - Spring Boot WAR to External Apache Tomcat on Linux Servers.
 ---
 ## Prerequisites
-1. Install Required Software on Server
-2. Configure Tomcat Manager Roles on the Server
+1. Install Required Software on the Remote Server
+2. Configure Tomcat Manager Roles on the Remote Server
 4. Configure Maven Deploy Plugin in POM.xml in Local
 5. Set Up Maven Deployment Credentials in Local
 6. Deploy the Application
 ---
-## 1. Install Required Software on Server
+## 1. Install Required Software on the Remote Server
 - Java JDK
 - Apache Tomcat (wget from the official site) {ex: cd /opt
 sudo wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.85/bin/apache-tomcat-9.0.85.tar.gz and extract}
 - Allow port 8080 open to internet (from security groups if using AWS EC2 instance)
 ---
-## 2. Configure Tomcat Manager Roles
+## 2. Configure Tomcat Manager Roles on the Remote Server
 Edit conf/tomcat-users.xml and add a user with necessary manager roles. This allows Maven and the Tomcat Maven Plugin to authenticate and deploy remotely.
 ```
 <?xml version="1.0" encoding="UTF-8"?>
@@ -37,7 +37,7 @@ In webapps/manager/META-INF/context.xml, comment out this block:
 -->
 ```
 ---
-## 3. Configure Maven Deploy Plugin
+## 3. Configure Maven Deploy Plugin in Local
 In the <build><plugins> section of pom.xml, add both the WAR and Tomcat Maven plugins:
 ```
 <build>
@@ -66,7 +66,7 @@ Explanation:
   - URL points to your Tomcat Manager endpoint.
   - path sets your app URL path, e.g., http://<server>:8080/stock.
 ---
-## 4.Set Up Maven Deployment Credentials
+## 4.Set Up Maven Deployment Credentials in Local
 Edit (or create) ~/.m2/settings.xml on the machine running Maven and add your Tomcat server credentials:
 ```
 <servers>
