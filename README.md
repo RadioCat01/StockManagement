@@ -66,7 +66,7 @@ Explanation:
   - URL points to your Tomcat Manager endpoint.
   - path sets your app URL path, e.g., http://<server>:8080/stock.
 ---
-## 4.Set Up Maven Deployment Credentials in Local
+## 4. Set Up Maven Deployment Credentials in Local
 Edit (or create) ~/.m2/settings.xml on the machine running Maven and add your Tomcat server credentials:
 ```
 <servers>
