@@ -1,17 +1,17 @@
 # Remote Deployment - Spring Boot WAR to External Apache Tomcat on Linux Servers.
 ---
 ## Prerequisites
-1. Install Required Software
-2. Configure Tomcat Manager Roles
-3. Configure Maven Deploy Plugin in POM.xml
-4. Set Up Maven Deployment Credentials
-5. Deploy the Application
+1. Install Required Software on Server
+2. Configure Tomcat Manager Roles on the Server
+4. Configure Maven Deploy Plugin in POM.xml in Local
+5. Set Up Maven Deployment Credentials in Local
+6. Deploy the Application
 ---
-## 1. Install Required Software
+## 1. Install Required Software on Server
 - Java JDK
-- Apache Maven
 - Apache Tomcat (wget from the official site) {ex: cd /opt
 sudo wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.85/bin/apache-tomcat-9.0.85.tar.gz and extract}
+- Allow port 8080 open to internet (from security groups if using AWS EC2 instance)
 ---
 ## 2. Configure Tomcat Manager Roles
 Edit conf/tomcat-users.xml and add a user with necessary manager roles. This allows Maven and the Tomcat Maven Plugin to authenticate and deploy remotely.
@@ -27,6 +27,14 @@ Edit conf/tomcat-users.xml and add a user with necessary manager roles. This all
     <role rolename="manager-status"/>
     <user username="admin" password="password" roles="manager-gui,manager-script,manager-jmx,manager-status"/>
 </tomcat-users>
+```
+Makesure the tomcat server.xml or Tomcat manager's web.xml in the external server does not block remote IPs.
+In webapps/manager/META-INF/context.xml, comment out this block:
+```
+<!--
+<Valve className="org.apache.catalina.valves.RemoteAddrValve"
+       allow="127\.\d+\.\d+\.\d+|::1"/>
+-->
 ```
 ---
 ## 3. Configure Maven Deploy Plugin
@@ -45,9 +53,9 @@ In the <build><plugins> section of pom.xml, add both the WAR and Tomcat Maven pl
       <artifactId>tomcat7-maven-plugin</artifactId>
       <version>2.2</version>
       <configuration>
-        <url>http://127.0.0.1:8080/manager/text</url>
-        <server>TomcatServer</server>
-        <path>/stock</path> <!-- Context path -->
+        <url>http://<your-ec2-public-ip>:8080/manager/text</url>  <!-- This is the target ip -->
+        <server>TomcatServer</server>   <!-- This is the ID used to fetch credentials -->
+        <path>/stock</path>  <!-- Context path -->
       </configuration>
     </plugin>
   </plugins>
@@ -63,9 +71,9 @@ Edit (or create) ~/.m2/settings.xml on the machine running Maven and add your To
 ```
 <servers>
   <server>
-    <id>TomcatServer</id>
-    <username>admin</username>
-    <password>password</password>
+    <id>TomcatServer</id>  <!-- Match to <server> in POM.xml of the application -->
+    <username>admin</username>  <!-- Tomcat Credential user name -->
+    <password>password</password>  <!-- Tomcat Credential password -->
   </server>
 </servers>
 ```
@@ -80,8 +88,8 @@ bash
 mvn clean package
 mvn tomcat7:deploy
 ```
+> **🔁 This will look for the IP address and the port where Tomcat is working (which is mentioned in the POM.xml) and deploy the application using the tomcat credentials that are given in the local maven settings.xml file**
+---
 
 # Manual Deployment - Spring Boot WAR to External Apache Tomcat on Linux Servers.
-
-
-
+Manually copying the WAR file to the Tomcat server's webapps directory. Tomcat then automatically detects the WAR file and deploys the application on restart or may need to start the application from manager page. 
