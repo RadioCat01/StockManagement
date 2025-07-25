@@ -89,6 +89,10 @@ mvn clean package
 mvn tomcat7:deploy
 ```
 > **🔁 This will look for the IP address and the port where Tomcat is working (which is mentioned in the POM.xml) and deploy the application using the tomcat credentials that are given in the local maven settings.xml file**
+
+
+# CI/CD 
+https://medium.com/@shubhangi.thakur4532/deploy-spring-boot-application-using-jenkins-with-github-integration-9d28c99ea168
 ---
 
 # Manual Deployment - Spring Boot WAR to External Apache Tomcat on Linux Servers.
