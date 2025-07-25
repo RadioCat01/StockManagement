@@ -93,6 +93,8 @@ mvn tomcat7:deploy
 
 # CI/CD 
 https://medium.com/@shubhangi.thakur4532/deploy-spring-boot-application-using-jenkins-with-github-integration-9d28c99ea168
+
+dev.to/javafullstackdev/jenkins-and-spring-boot-a-comprehensive-guide-5f20
 ---
 
 # Manual Deployment - Spring Boot WAR to External Apache Tomcat on Linux Servers.
