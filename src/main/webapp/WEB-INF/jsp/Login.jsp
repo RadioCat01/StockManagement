@@ -28,8 +28,9 @@
   <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/assets/css/style.css">
   <script src="${pageContext.request.contextPath}/node_modules/angular/angular.min.js" type="text/javascript"></script>
   <script src="${pageContext.request.contextPath}/JS/app.js" type="text/javascript"></script>
-  <script src="${pageContext.request.contextPath}/JS/Controllers/Login.js" type="text/javascript"></script>
   <!-- END Custom CSS-->
+  <%@include file="../jspf/globalHeader.jspf.jsp"%>
+  <script src="${pageContext.request.contextPath}/JS/Controllers/AuthController.js" type="text/javascript"></script>
   <style>
     .head{
       display: flex;
@@ -47,9 +48,9 @@
     }
   </style>
 </head>
-<body class="vertical-layout vertical-menu 1-column  bg-full-screen-image menu-expanded blank-page blank-page" data-open="click" data-menu="vertical-menu" data-color="bg-gradient-x-purple-blue" data-col="1-column" ng-app="Stock">
+<body ng-app="Stock" ng-controller="AuthCont" class="vertical-layout vertical-menu 1-column  bg-full-screen-image menu-expanded blank-page blank-page" data-open="click" data-menu="vertical-menu" data-color="bg-gradient-x-purple-blue" data-col="1-column">
 <!-- ////////////////////////////////////////////////////////////////////////////-->
-<div class="app-content content" ng-controller="LoginController">
+<div class="app-content content">
   <div class="content-wrapper">
     <div class="content-wrapper-before"></div>
     <div class="content-header row">
@@ -69,15 +70,15 @@
             <div class="card-content">
 
               <div class="card-body">
-                <form class="form-horizontal needs-validation" action="<c:url value='/login' />" method="post">
+                <form class="form-horizontal needs-validation" ng-submit="login()">
                   <fieldset class="form-group position-relative has-icon-left">
-                    <input type="text" class="form-control round" name="username" placeholder="Your Username" required>
+                    <input type="text" ng-model="loginReq.username" class="form-control round" name="username" placeholder="Your Username" required>
                     <div class="form-control-position">
                       <i class="ft-user"></i>
                     </div>
                   </fieldset>
                   <fieldset class="form-group position-relative has-icon-left">
-                    <input type="password" class="form-control round" name="password" placeholder="Enter Password" required>
+                    <input type="password" ng-model="loginReq.password" class="form-control round" name="password" placeholder="Enter Password" required>
                     <div class="form-control-position">
                       <i class="ft-lock"></i>
                     </div>

@@ -7,7 +7,10 @@ import com.synapse.StockMGT.Models.CompanyHierarchy.PosTerminal;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Store;
 import com.synapse.StockMGT.Models.CompanyHierarchy.StoreFront;
 import com.synapse.StockMGT.Repos.*;
+import com.synapse.StockMGT.User.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -26,15 +29,15 @@ public class SalesService {
     private final InvoiceRepo invoiceRepo;
     private final ItemHistoryRepo itemHistoryRepo;
     private final StoreRepo storeRepo;
-    private final PosTerminalRepo posTerminalRepo;
+    private final StoreFrontRepo storeFrontRepo;
 
     public List<SaleItemDTO> getItems() {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<SaleItemDTO> salesItems = new ArrayList<>();
-        int posTerminalID = 1;
-        PosTerminal pos = posTerminalRepo.findById(posTerminalID).orElseThrow(() -> new RuntimeException("PosTerminal not found"));
-
-        List<Item> items = pos.getCounter().getStoreFront()
-                .getStore().stream().flatMap(store -> store.getItems().stream())
+        int storeFrontID = currentUser.getStoreFront().getStorefrontId();
+        StoreFront storeFront = storeFrontRepo.findById(storeFrontID).orElseThrow(()->new RuntimeException("Store front not found"));
+        List<Item> items = storeFront.getStore()
+                .stream().flatMap(store -> store.getItems().stream())
                 .toList();
 
         Map<String, List<Item>> groupedItems = items.stream()

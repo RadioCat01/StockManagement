@@ -102,7 +102,7 @@
         <ul class="menu-content">
           <li><a class="menu-item" href="${pageContext.request.contextPath}/grnSummery">GRN Summery</a>
           </li>
-          <li class="active"><a class="menu-item" href="#"><span class="menu-title" data-i18n="">Sales Summery</span></a>
+          <li class=" nav-item"><a class="menu-item" href="#"><span class="menu-title" data-i18n="">Sales Summery</span></a>
           </li>
         </ul>
       </li>

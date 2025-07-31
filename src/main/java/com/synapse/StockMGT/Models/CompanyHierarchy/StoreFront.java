@@ -4,6 +4,7 @@ package com.synapse.StockMGT.Models.CompanyHierarchy;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.synapse.StockMGT.CustomFields.StoreFront_Data;
 import com.synapse.StockMGT.CustomFields.StoreFront_Fields;
+import com.synapse.StockMGT.User.User;
 import lombok.*;
 
 import javax.persistence.*;
@@ -46,4 +47,7 @@ public class StoreFront{
     @JoinColumn(name = "subComId")
     @JsonIgnore
     private SubCompany subCompany;
+
+    @OneToOne(mappedBy = "storeFront")
+    private User user;
 }

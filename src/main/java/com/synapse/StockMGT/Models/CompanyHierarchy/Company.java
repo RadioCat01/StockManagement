@@ -2,6 +2,7 @@ package com.synapse.StockMGT.Models.CompanyHierarchy;
 
 import com.synapse.StockMGT.CustomFields.*;
 import com.synapse.StockMGT.Models.*;
+import com.synapse.StockMGT.User.User;
 import lombok.*;
 
 import javax.persistence.*;
@@ -21,7 +22,10 @@ public class Company {
 
     private String companyName;
 
-    @OneToMany(mappedBy = "company", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "company")
+    private List<User> users;
+
+    @OneToMany(mappedBy = "company")
     private List<Company_Fields> fields;
 
     @OneToMany(mappedBy = "company")
