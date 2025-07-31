@@ -10,7 +10,6 @@ import java.time.temporal.ChronoUnit;
 
 @Service
 public class WarrantyCal {
-
     public LocalDate getSupplierWarranty(SupplierGRN grn) {
         if (grn == null || grn.getGrnDate() == null || grn.getWarranty() == null) {
             throw new IllegalArgumentException("GRN, grnDate and warranty must not be null");
