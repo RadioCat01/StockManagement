@@ -1,5 +1,5 @@
 package com.synapse.StockMGT.User;
 
 public enum Roles {
-    USER, ADMIN
+    USER, ADMIN, CASHIER
 }
