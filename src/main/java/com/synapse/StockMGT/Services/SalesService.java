@@ -3,13 +3,11 @@ package com.synapse.StockMGT.Services;
 import com.synapse.StockMGT.CustomFields.CustomFields_customer;
 import com.synapse.StockMGT.DTOs.*;
 import com.synapse.StockMGT.Models.*;
-import com.synapse.StockMGT.Models.CompanyHierarchy.PosTerminal;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Store;
 import com.synapse.StockMGT.Models.CompanyHierarchy.StoreFront;
 import com.synapse.StockMGT.Repos.*;
 import com.synapse.StockMGT.User.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 

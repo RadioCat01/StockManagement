@@ -1,18 +1,26 @@
-version: '3.8'
-
 services:
-  mysql:
-    image: mysql:latest
-    container_name: mysqldb
+  postgres:
+    image: postgres:15.1-alpine
+    container_name: postgresdb
     ports:
-      - "3306:3306"
-    expose:
-      - "3306"
+      - "5432:5432"
     environment:
-      - MYSQL_ROOT_PASSWORD=kanishka23
-      - MYSQL_DATABASE=Stock
+      - POSTGRES_PASSWORD=kanishka23
+      - POSTGRES_DB=stock
     volumes:
-      - mysql:/var/lib/mysql
+      - pgdata:/var/lib/postgresql/data
+#
+#  stock-app:
+#    image: radiocat2000/stock:1
+#    container_name: stock-app
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - postgres
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/stock
+#      - SPRING_DATASOURCE_USERNAME=myappuser
+#      - SPRING_DATASOURCE_PASSWORD=kanishka23
 
 volumes:
-  mysql:
+  pgdata:
