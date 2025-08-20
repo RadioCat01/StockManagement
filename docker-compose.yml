@@ -1,18 +1,35 @@
 version: '3.8'
 
 services:
-  mysql:
-    image: mysql:latest
-    container_name: mysqldb
+  app:
+    image: radiocat2000/stock
+    container_name: stock-app
     ports:
-      - "3306:3306"
-    expose:
-      - "3306"
+      - "8080:8080"
     environment:
-      - MYSQL_ROOT_PASSWORD=kanishka23
-      - MYSQL_DATABASE=Stock
-    volumes:
-      - mysql:/var/lib/mysql
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/stock
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: kanishka23
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      BPL_JVM_CALCULATE_HEAP: false
+      JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # needed on Linux to resolve host.docker.internal
 
-volumes:
-  mysql:
+
+#services:
+#  mysql:
+#    image: mysql:latest
+#    container_name: mysqldb
+#    ports:
+#      - "3306:3306"
+#    expose:
+#      - "3306"
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=kanishka23
+#      - MYSQL_DATABASE=Stock
+#    volumes:
+#      - mysql:/var/lib/mysql
+#
+#volumes:
+#  mysql:
