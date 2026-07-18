@@ -35,6 +35,7 @@ public class JobNotes{
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "jobNoteId")
     @Builder.Default
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<JobItem> jobItems = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)

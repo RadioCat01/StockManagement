@@ -71,8 +71,6 @@ public class CompanyService {
                 .subCompanyName((String) formData.get("subCompanyName"))
                 .company(company)
                 .build());
-        company.getSubCompanies().add(subCompany);
-        companyRepo.save(company);
 
         List<Subcompany_Fields> fields = subCom_FieldsRepo.findAll();
 
@@ -115,11 +113,6 @@ public class CompanyService {
                 .build();
 
         storeRepo.save(store);
-
-        company.getStores().add(store);
-        subCompany.getStores().add(store);
-        companyRepo.save(company);
-        subCompanyRepo.save(subCompany);
 
         List<Store_Fields> fields = storeFieldRepo.findAll();
         List<Store_Data> dataToSave = fields.stream()
@@ -177,13 +170,8 @@ public class CompanyService {
             store.getStoreFronts().add(storeFront);
         });
 
-        company.getStoreFronts().add(storeFront);
-        subCompany.getStoreFronts().add(storeFront);
-
         storeFrontRepo.save(storeFront);
         storeRepo.saveAll(stores);
-        companyRepo.save(company);
-        subCompanyRepo.save(subCompany);
 
         List<StoreFront_Fields> fields = storeFrontFieldRepo.findAll();
         List<StoreFront_Data> dataToSave = fields.stream()
@@ -233,13 +221,6 @@ public class CompanyService {
                 .build();
 
         counterRepo.save(counter);
-        company.getCounters().add(counter);
-        subCompany.getCounters().add(counter);
-        storeFront.getCounter().add(counter);
-
-        companyRepo.save(company);
-        subCompanyRepo.save(subCompany);
-        storeFrontRepo.save(storeFront);
 
         List<Counter_Fields> fields = counter_FieldsRepo.findAll();
         List<Counter_Data> dataToSave = fields.stream()
@@ -287,12 +268,6 @@ public class CompanyService {
                 .build();
 
         scannerRepo.save(scanner);
-        company.getScanners().add(scanner);
-        subCompany.getScanners().add(scanner);
-        counter.getScanners().add(scanner);
-        companyRepo.save(company);
-        subCompanyRepo.save(subCompany);
-        counterRepo.save(counter);
 
         List<Scanner_Fields> fields = scanner_FieldsRepo.findAll();
         List<Scanner_Data> dataToSave = fields.stream()
@@ -341,12 +316,6 @@ public class CompanyService {
                 .build();
 
         posTerminalRepo.save(terminal);
-        company.getPosTerminals().add(terminal);
-        subCompany.getPosTerminals().add(terminal);
-        counter.getPosTerminals().add(terminal);
-        companyRepo.save(company);
-        subCompanyRepo.save(subCompany);
-        counterRepo.save(counter);
 
         List<POS_Fields> fields = posFieldRepo.findAll();
         List<POS_Data> dataToSave = fields.stream()
@@ -394,12 +363,6 @@ public class CompanyService {
                 .build();
 
         cashDrawerRepo.save(cashDrawer);
-        company.getCashDrawers().add(cashDrawer);
-        subCompany.getCashDrawers().add(cashDrawer);
-        counter.getCashDrawers().add(cashDrawer);
-        companyRepo.save(company);
-        subCompanyRepo.save(subCompany);
-        counterRepo.save(counter);
 
         List<Drawer_Fields> fields = drawer_FieldsRepo.findAll();
         List<Drawer_Data> dataToSave = fields.stream()

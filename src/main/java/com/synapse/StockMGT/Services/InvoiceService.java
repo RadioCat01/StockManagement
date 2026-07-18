@@ -10,7 +10,7 @@ import com.synapse.StockMGT.Util.WarrantyCal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,27 +23,34 @@ public class InvoiceService {
     private final SupplierGRNRepo supplierGRNRepo;
     private final WarrantyCal warrantyCal;
 
+    @Transactional(readOnly = true)
     public List<?> getAllInvoices() {
         List<Invoice> invoices = invoiceRepo.findAll();
         List<InvoiceDTO> invoiceDTOs = new ArrayList<>();
         for (Invoice invoice : invoices) {
-            invoiceDTOs.add(getInvoiceData(invoice.getInvoiceId()));
+            invoiceDTOs.add(getInvoiceData(invoice));
         }
         return invoiceDTOs;
     }
 
+    @Transactional(readOnly = true)
     public InvoiceDTO getInvoices(Integer id) {
         Invoice invoice = invoiceRepo.findById(id).orElseThrow();
-        return getInvoiceData(invoice.getInvoiceId());
+        return getInvoiceData(invoice);
     }
 
+    @Transactional(readOnly = true)
     public InvoiceDTO getInvoiceData(int invoiceId) {
+        Invoice invoice = invoiceRepo.findById(invoiceId)
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+        return getInvoiceData(invoice);
+    }
+
+    @Transactional(readOnly = true)
+    public InvoiceDTO getInvoiceData(Invoice invoice) {
         List<ProductInvoiceDTO> invoicingProducts = new ArrayList<>();
         double total = 0.0;
         double unitPrice = 0.0;
-
-        Invoice invoice = invoiceRepo.findById(invoiceId)
-                .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
 
         for(SoldProducts products :  invoice.getSales().getSoldProducts()) {
@@ -91,7 +98,7 @@ public class InvoiceService {
         }
 
         return InvoiceDTO.builder()
-                .invoiceId(invoiceId)
+                .invoiceId(invoice.getInvoiceId())
                 .poReference(invoice.getPoReference())
                 .poDate(invoice.getPoDate())
                 .customerName(invoice.getCustomerName())
@@ -129,11 +136,26 @@ public class InvoiceService {
     public InvoiceDTO getInvoiceByNumber(String number) {
         return invoiceRepo.findByInvoiceNumber(number).map(invoice -> {
             List<SoldProducts> products = invoice.getSales().getSoldProducts();
+            List<Integer> grnIds = new ArrayList<>();
+            for (SoldProducts product : products) {
+                for (SoldItem soldItem : product.getSoldItems()) {
+                    grnIds.add(soldItem.getSupplierGRNId());
+                }
+            }
+
+            List<SupplierGRN> grns = supplierGRNRepo.findAllById(grnIds);
+            java.util.Map<Integer, SupplierGRN> grnMap = new java.util.HashMap<>();
+            for (SupplierGRN grn : grns) {
+                grnMap.put(grn.getSupplierGRNId(), grn);
+            }
+
             List<ProductInvoiceDTO> items = new ArrayList<>();
             for(SoldProducts product:products) {
                 for(SoldItem soldItem : product.getSoldItems()) {
-                    SupplierGRN grn = supplierGRNRepo.findById(soldItem.getSupplierGRNId())
-                                    .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                    SupplierGRN grn = grnMap.get(soldItem.getSupplierGRNId());
+                    if (grn == null) {
+                        throw new RuntimeException("Supplier not found");
+                    }
                     items.add(ProductInvoiceDTO.builder()
                                     .productDescription(grn.getProductDescription())
                                     .serials(soldItem.getSerialNumber())

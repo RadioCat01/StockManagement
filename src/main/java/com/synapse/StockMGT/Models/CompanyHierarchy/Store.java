@@ -37,6 +37,7 @@ public class Store{
 
     @OneToMany(mappedBy = "store")
     @JsonManagedReference(value = "store")
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<Item> items;
 
     @OneToMany(mappedBy = "store")

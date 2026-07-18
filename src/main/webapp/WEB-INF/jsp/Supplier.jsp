@@ -3,9 +3,9 @@
 <head>
   <%@include file="../jspf/Headers.jspf"%>
   <title>Stock Management</title>
-  <script src="${pageContext.request.contextPath}/JS/Controllers/ItemsManagement.js" type="text/javascript"></script>
+  <script src="${pageContext.request.contextPath}/JS/Controllers/SupplierController.js" type="text/javascript"></script>
 </head>
-<body ng-controller="ItemsManagement" class="vertical-layout vertical-menu 2-columns   menu-expanded fixed-navbar" data-open="click" data-menu="vertical-menu" data-color="bg-gradient-x-purple-blue" data-col="2-columns">
+<body ng-app="Stock" ng-controller="SupplierMgt" class="vertical-layout vertical-menu 2-columns   menu-expanded fixed-navbar" data-open="click" data-menu="vertical-menu" data-color="bg-gradient-x-purple-blue" data-col="2-columns">
 
 <!-- fixed-top-->
 <nav class="header-navbar navbar-expand-md navbar navbar-with-menu navbar-without-dd-arrow fixed-top navbar-dark">

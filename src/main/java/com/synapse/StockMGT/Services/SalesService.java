@@ -13,7 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -31,6 +31,7 @@ public class SalesService {
     private final StoreRepo storeRepo;
     private final StoreFrontRepo storeFrontRepo;
 
+    @Transactional(readOnly = true)
     public List<SaleItemDTO> getItems() {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<SaleItemDTO> salesItems = new ArrayList<>();
@@ -64,7 +65,6 @@ public class SalesService {
                     .storeId(store.getStoreId())
                     .build());
         }
-        System.out.println("salesItems = " + salesItems);
         return salesItems;
     }
 
@@ -106,6 +106,9 @@ public class SalesService {
             newSale.setCustomer(newCustomer);
         }
 
+        List<ItemHistory> histories = new ArrayList<>();
+        List<Integer> itemIdsToDelete = new ArrayList<>();
+
         for (SoldProductDTO product : sale.getProducts()){
             SupplierGRN supplierGRN = supplierGRNRepo.findById(product.getSupplierGRNID())
                     .orElseThrow(() -> new RuntimeException("GRN not found"));
@@ -114,7 +117,6 @@ public class SalesService {
             Store store = storeRepo.findById(product.getStoreId())
                     .orElseThrow(() -> new RuntimeException("Store not found"));
 
-
             for(int q=0; q <= product.getSelectedQuantity()-1; q++){
                 soldItems.add(SoldItem.builder()
                                 .itemCode(product.getItemCode())
@@ -122,22 +124,21 @@ public class SalesService {
                                 .supplierGRNId(supplierGRN.getSupplierGRNId())
                                 .build());
                 int itemID = supplierGRN.getItems().get(q).getItemId();
-                itemHistoryRepo.save(ItemHistory.builder()
+                histories.add(ItemHistory.builder()
                                 .brand(supplierGRN.getBrandName())
                                 .itemCode(product.getItemCode())
                                 .serialNo(supplierGRN.getItems().get(q).getSerialNumber())
                                 .currentState("Sold to: "+thisCustomer.getName()+"\n"+thisCustomer.getPhone())
                                 .lastUpdate(LocalDate.now())
                                 .build());
-                itemRepo.deleteByItemId(itemID);
+                itemIdsToDelete.add(itemID);
             }
             soldProducts.add(SoldProducts.builder()
-                    .itemCode(product.getItemCode())
-                    .soldItems(soldItems)
-                    .supplierGRNId(supplierGRN.getSupplierGRNId())
-                    .store(store)
-                    .build());
-
+                     .itemCode(product.getItemCode())
+                     .soldItems(soldItems)
+                     .supplierGRNId(supplierGRN.getSupplierGRNId())
+                     .store(store)
+                     .build());
 
             if(sale.getRetail().equals(true)) {
                 subTotal += product.getSelectedQuantity() * supplierGRN.getRetailPrice();
@@ -145,6 +146,12 @@ public class SalesService {
             else {
                 subTotal += product.getSelectedQuantity() * supplierGRN.getDealerPrice();
             }
+        }
+        if (!histories.isEmpty()) {
+            itemHistoryRepo.saveAll(histories);
+        }
+        if (!itemIdsToDelete.isEmpty()) {
+            itemRepo.deleteAllByIdInBatch(itemIdsToDelete);
         }
         newSale.setSaleType(sale.getRetail() ? "Retail" : "Dealer");
         newSale.setSoldProducts(soldProducts);
@@ -188,16 +195,32 @@ public class SalesService {
         List<SalesReportDTO> reports = new ArrayList<>();
         List<Sales> sales = salesRepo.findAll();
 
+        List<Integer> grnIds = sales.stream()
+                .flatMap(s -> s.getSoldProducts().stream())
+                .map(SoldProducts::getSupplierGRNId)
+                .distinct()
+                .toList();
+
+        List<SupplierGRN> grnList = supplierGRNRepo.findAllById(grnIds);
+        Map<Integer, SupplierGRN> grnMap = new HashMap<>();
+        for (SupplierGRN grn : grnList) {
+            grnMap.put(grn.getSupplierGRNId(), grn);
+        }
+
         for(Sales sale : sales){
             for(SoldProducts soldProduct : sale.getSoldProducts()){
                 List<String> serials = new ArrayList<>();
-                Store store = storeRepo.findById(soldProduct.getStore().getStoreId())
-                        .orElseThrow(() -> new RuntimeException("Store not found"));
+                Store store = soldProduct.getStore();
+                if (store == null) {
+                    throw new RuntimeException("Store not found");
+                }
                 for(SoldItem soldItem : soldProduct.getSoldItems()){
                     serials.add(soldItem.getSerialNumber());
                 }
-                SupplierGRN grn = supplierGRNRepo.findById(soldProduct.getSupplierGRNId())
-                        .orElseThrow(() -> new RuntimeException("GRN not found"));
+                SupplierGRN grn = grnMap.get(soldProduct.getSupplierGRNId());
+                if (grn == null) {
+                    throw new RuntimeException("GRN not found");
+                }
                 reports.add(SalesReportDTO.builder()
                         .brand(grn.getBrandName())
                         .description(grn.getProductDescription())

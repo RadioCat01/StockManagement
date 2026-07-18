@@ -23,7 +23,6 @@ public class JobItem{
     @Column(unique = true)
     private String serial;
 
-    @Lob
     @Column(name = "defectiveDetails", columnDefinition = "TEXT")
     private String defectiveDetails;
 

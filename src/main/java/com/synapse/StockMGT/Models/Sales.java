@@ -28,9 +28,11 @@ public class Sales{
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "sale_id")
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<SoldProducts> soldProducts;
 
     private String saleType;
+    @Builder.Default
     private LocalDate soldDate=LocalDate.now();
 
     private String poReference;

@@ -29,6 +29,7 @@ public class Category {
     @OneToMany(mappedBy = "category")
     @ToString.Exclude
     @JsonManagedReference(value = "category-brand")
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<Brand> brands;
 
     @ManyToOne

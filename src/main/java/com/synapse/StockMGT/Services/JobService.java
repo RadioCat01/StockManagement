@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
@@ -109,11 +109,11 @@ public class JobService {
     }
 
     private String convertImageToBase64String(BufferedImage image, String format) throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(image, format, baos);
-        byte[] imageBytes = baos.toByteArray();
-        baos.close();
-        return Base64.getEncoder().encodeToString(imageBytes);
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            ImageIO.write(image, format, baos);
+            byte[] imageBytes = baos.toByteArray();
+            return Base64.getEncoder().encodeToString(imageBytes);
+        }
     }
 
     private String generateJobNumber(JobDTO job) {
@@ -128,6 +128,7 @@ public class JobService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<JobResDTO> getJobs() {
         return jobNoteRepo.findAll().stream().map(job ->
             JobResDTO.builder()
@@ -172,6 +173,9 @@ public class JobService {
 
         List<JobItemsDTO> updatedJobItems = new ArrayList<>();
 
+        List<JobItem> jobItemsToSave = new ArrayList<>();
+        List<Item> itemsToDelete = new ArrayList<>();
+
         for (JobItemsDTO item : job.getJobItems()) {
             if (item.isWarrantyClaimed()) {
                 continue;
@@ -197,8 +201,8 @@ public class JobService {
                     .build());
             jobItem.setWarrantyClaimed(true);
 
-            jobItemRepo.save(jobItem);
-            itemRepo.delete(replacingItem);
+            jobItemsToSave.add(jobItem);
+            itemsToDelete.add(replacingItem);
 
             updatedJobItems.add(JobItemsDTO.builder()
                     .description(item.getDescription())
@@ -208,6 +212,13 @@ public class JobService {
                             .description(replacingItem.getItemInfo().getItemDescription())
                             .build())
                     .build());
+        }
+
+        if (!jobItemsToSave.isEmpty()) {
+            jobItemRepo.saveAll(jobItemsToSave);
+        }
+        if (!itemsToDelete.isEmpty()) {
+            itemRepo.deleteAllInBatch(itemsToDelete);
         }
 
         boolean allClaimed = note.getJobItems().stream()
@@ -228,7 +239,7 @@ public class JobService {
                 .build();
     }
 
-
+    @Transactional(readOnly = true)
     private void createRepNote(JobDTO job, JobNotes note) {
         if(note.getReplacementNote() == null){
             ReplacementNote repNote = replacementNoteRepo.save(ReplacementNote.builder()
@@ -248,6 +259,7 @@ public class JobService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<ReplacementNotesDTO> getRepNotes() {
         return replacementNoteRepo.findAll().stream()
                 .flatMap(repNote ->
@@ -267,6 +279,7 @@ public class JobService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<JobItemsDTO> getDefects() {
         return jobNoteRepo.findAll().stream().flatMap(jobNote ->jobNote
                 .getJobItems().stream().map(jobItem -> JobItemsDTO.builder()

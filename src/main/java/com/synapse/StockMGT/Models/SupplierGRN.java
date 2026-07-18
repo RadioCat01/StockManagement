@@ -46,14 +46,16 @@ public class SupplierGRN{
     private String serialNumberList;
     private int store;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "supplierGRN")
     @Builder.Default
     @JsonManagedReference(value = "grn")
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<Item> items = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "customId")
     @Builder.Default
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<CustomFields_grn> customFields = new ArrayList<>();
 
     @ManyToOne

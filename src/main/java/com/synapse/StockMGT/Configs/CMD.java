@@ -42,42 +42,42 @@ public class CMD {
                     AdminRole = roleRepository.save(Role.builder().roleName(Roles.ADMIN).build());
                 }
 
-                String sampleCompanyName = "TechCorp";
-                StoreFront frontA= null;
-                if (companyRepository.findByCompanyName(sampleCompanyName).isEmpty()) {
-                    frontA = StoreFront.builder()
-                            .storeFrontName("Main Front")
-                            .build();
-
-                    Store store = Store.builder()
-                            .storeName("Central Store")
-                            .storeFronts(List.of(frontA))
-                            .build();
-
-                    SubCompany subCompany = SubCompany.builder()
-                            .subCompanyName("TechCorp Lanka")
-                            .stores(List.of(store))
-                            .build();
-
-                    Company company = Company.builder()
-                            .companyName(sampleCompanyName)
-                            .subCompanies(List.of(subCompany))
-                            .build();
-                    frontA = storeRepository.save(store).getStoreFronts().get(0);
-                    subCompany.setCompany(company);
-                    store.setStoreFronts(List.of(frontA));
-
-                    companyRepository.save(company);
-
-                } else {
-                    System.out.println("Sample company already exists.");
-                }
+//                String sampleCompanyName = "TechCorp";
+//                StoreFront frontA= null;
+//                if (companyRepository.findByCompanyName(sampleCompanyName).isEmpty()) {
+//                    frontA = StoreFront.builder()
+//                            .storeFrontName("Main Front")
+//                            .build();
+//
+//                    Store store = Store.builder()
+//                            .storeName("Central Store")
+//                            .storeFronts(List.of(frontA))
+//                            .build();
+//
+//                    SubCompany subCompany = SubCompany.builder()
+//                            .subCompanyName("TechCorp Lanka")
+//                            .stores(List.of(store))
+//                            .build();
+//
+//                    Company company = Company.builder()
+//                            .companyName(sampleCompanyName)
+//                            .subCompanies(List.of(subCompany))
+//                            .build();
+//                    frontA = storeRepository.save(store).getStoreFronts().get(0);
+//                    subCompany.setCompany(company);
+//                    store.setStoreFronts(List.of(frontA));
+//
+//                    companyRepository.save(company);
+//
+//                } else {
+//                    System.out.println("Sample company already exists.");
+//                }
                 if(userRepository.findByUsername("ADMIN").isEmpty()){
                     userRepository.save(User.builder()
                             .username("ADMIN")
                             .password(new BCryptPasswordEncoder().encode("password"))
                             .roles(List.of(UserRole,AdminRole))
-                            .storeFront(frontA)
+//                            .storeFront(frontA)
                             .enabled(true)
                             .accountNonExpired(true)
                             .accountNonLocked(true)

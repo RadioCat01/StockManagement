@@ -46,6 +46,7 @@ public class Invoice{
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "invoiceId")
     @Builder.Default
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<Services> services = new ArrayList<>();
 
     @ManyToOne

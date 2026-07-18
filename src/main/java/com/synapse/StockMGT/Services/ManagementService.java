@@ -13,7 +13,7 @@ import com.synapse.StockMGT.Repos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +31,7 @@ public class ManagementService {
     private final SupplierGRNRepo supplierGRNRepo;
     private final ItemHistoryRepo itemHistoryRepo;
 
+    @Transactional(readOnly = true)
     public List<FlatCatDTO> getFlatCat() {
         List<FlatCatDTO> flatCatDTOList = new ArrayList<>();
         List<Category> categoryList = categoryRepo.findAll();
@@ -45,7 +46,7 @@ public class ManagementService {
                                     .brandName(brand.getBrandName())
                                     .itemCode(info.getItemCode())
                                     .itemDescription(info.getProductDescription())
-                                    .quantity(info.getItems().toArray().length)
+                                    .quantity(info.getItems().size())
                                     .date(info.getGrnDate())
                                     .build());
                         }
@@ -86,11 +87,7 @@ public class ManagementService {
     }
 
     public String createBrand(BrandDTO brandDTO) {
-        List<Category> categoryList = categoryRepo.findAll();
-        List<Brand> brandList = categoryList.stream().map(Category::getBrands).flatMap(List::stream).toList();
-        Brand existingBrand = brandList.stream().filter(brand -> brand
-                .getBrandName().toLowerCase().trim().equals(brandDTO
-                        .getBrandName().toLowerCase().trim())).findFirst().orElse(null);
+        Brand existingBrand = brandRepo.findByBrandNameIgnoreCase(brandDTO.getBrandName().trim()).orElse(null);
 
         if (existingBrand != null) {
 
@@ -236,15 +233,19 @@ public class ManagementService {
     }
 
     public void recordItemHistory(List<Item> item, Brand brand, ItemInfo itemInfo, Store store) {
+        List<ItemHistory> histories = new ArrayList<>();
+        String state = "Added to stock: "+store.getSubCompany().getSubCompanyName()+" - "+store.getStoreName();
+        LocalDate now = LocalDate.now();
         for (Item i : item) {
-            itemHistoryRepo.save(ItemHistory.builder()
+            histories.add(ItemHistory.builder()
                     .brand(brand.getBrandName())
                     .itemCode(itemInfo.getItemCode())
                     .serialNo(i.getSerialNumber())
-                    .currentState("Added to stock: "+store.getSubCompany().getSubCompanyName()+" - "+store.getStoreName())
-                    .lastUpdate(LocalDate.now())
+                    .currentState(state)
+                    .lastUpdate(now)
                     .build());
         }
+        itemHistoryRepo.saveAll(histories);
     }
 
     public Supplier saveSupplier(SupplierReqDTO supplierDTO){
@@ -303,6 +304,7 @@ public class ManagementService {
                         .build()).toList();
     }
 
+    @Transactional(readOnly = true)
     public List<CategoryDTO> getCategories() {
         List<Category> categories = categoryRepo.findAll();
         List<CategoryDTO> categoriesDTO = new ArrayList<>();

@@ -45,6 +45,7 @@ public class Supplier{
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "customId")
     @Builder.Default
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<CustomFields_supplier> customFields = new ArrayList<>();
 
     @OneToMany(mappedBy = "supplier")

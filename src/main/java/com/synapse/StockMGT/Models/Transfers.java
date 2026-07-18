@@ -25,7 +25,6 @@ public class Transfers{
     private LocalDate transferDate;
     private String reason;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String serials;
     private String transferFrom;

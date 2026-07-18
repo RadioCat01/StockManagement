@@ -26,7 +26,6 @@ public class ItemInfo{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer infoId;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String itemDescription;
 
@@ -35,6 +34,7 @@ public class ItemInfo{
 
     @OneToMany(mappedBy = "itemInfo")
     @JsonManagedReference(value = "itemInfo-items")
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<Item> items;
 
     @ManyToOne

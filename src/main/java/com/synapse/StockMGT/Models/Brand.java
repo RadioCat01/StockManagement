@@ -35,10 +35,12 @@ public class Brand{
     private Category category;
 
     @OneToMany(mappedBy = "brand")
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<ItemInfo> itemInfos;
 
     @OneToMany
     @JoinColumn(name = "brandId")
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<SupplierGRN> supplierGRNs;
 
     @ManyToOne

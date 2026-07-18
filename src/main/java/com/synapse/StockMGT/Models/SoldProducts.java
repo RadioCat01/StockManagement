@@ -27,6 +27,7 @@ public class SoldProducts{
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name="SoldProductID")
     @Builder.Default
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<SoldItem> soldItems = new ArrayList<>();
 
     @OneToOne

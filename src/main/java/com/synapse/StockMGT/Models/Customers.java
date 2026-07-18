@@ -35,6 +35,7 @@ public class Customers{
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "customId")
     @Builder.Default
+    @org.hibernate.annotations.BatchSize(size = 25)
     private List<CustomFields_customer> customFields = new ArrayList<>();
 
     @ManyToOne

@@ -177,7 +177,7 @@
                                         </tr>
                                         </tbody>
                                     </table>
-                                    <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addBrandModal"><i class="ft-plus"></i>&nbsp; Add Items</button>
+                                    <button class="btn btn-outline-info mb-2" data-toggle="modal" data-target="#addGenericDataModal" ng-click="openForm('category')"><i class="ft-plus"></i>&nbsp; Add Category</button>
                                 </div>
                             </div>
                         </div>
@@ -187,182 +187,294 @@
         </div>
     </div>
 
-    <!--///////// Add Brand Modal ///////////////-->
-    <div class="modal fade text-left" id="addBrandModal" tabindex="-1" role="dialog"
-         aria-labelledby="addProductModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+    <!--//////// Generic Modal ////// -->
+    <div class="modal fade text-left" id="addGenericDataModal" tabindex="-1" role="dialog" aria-labelledby="addCategoryDataLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
-
                 <div class="modal-header btn-bg-gradient-x-purple-blue white">
-                    <h4 class="modal-title white" id="addProductModalLabel">Create Item</h4>
-                    <button type="button" class="close white" data-dismiss="modal"
-                            aria-label="Close">
+                    <h4 class="modal-title white" id="addCategoryDataLabel">Add Company</h4>
+                    <button type="button" class="close white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
 
                 <div class="modal-body">
-                    <form class="form needs-validation" ng-submit="addCategory()">
-                        <div class="form-body">
-                            <div class="form-group d-flex justify-content-end">
-                                <div class="dropdown">
-                                    <button class="btn btn-outline-info dropdown-toggle" type="button"
-                                            id="customFieldsDropdown" data-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false">
-                                        Fields
-                                    </button>
+                    <form name="companyForm">
+                        <div class="form-row" ng-repeat="field in genericFields">
 
-                                    <!-- Dropdown Menu with Checkboxes -->
-                                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="customFieldsDropdown">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
-                                                   ng-model="itemCustom.stockNumber.enabled"
-                                                   ng-change="toggleCustomField('stockNumber')"
-                                                   id="stockNumberCheckbox">
-                                            <label class="form-check-label" for="stockNumberCheckbox">Stock Number</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
-                                                   ng-model="itemCustom.additional.enabled"
-                                                   ng-change="toggleCustomField('additional')"
-                                                   id="additionalCheckbox">
-                                            <label class="form-check-label" for="additionalCheckbox">Additional Details</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="timesheetinput1">Category Name</label>
-                                        <div class="position-relative has-icon-left d-flex align-items-center">
-                                            <div class="input-group">
-                                                <input type="text" id="timesheetinput1"
-                                                       class="form-control"
-                                                       ng-model="categoryName"
-                                                       placeholder="Category Name"
-                                                       name="categoryName">
-                                                <div class="form-control-position">
-                                                    <i class="ft-codepen"></i>
-                                                </div>
-                                            </div>
+                            <div class="form-group col-md-12">
+                                <label>{{field.fieldQuestion}} <span class="text-danger" ng-if="field.mandatory">*</span></label>
 
-                                            <button type="submit" class="btn btn-primary ml-2">
-                                                <i class="la la-check-square-o"></i> Save
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                    <form class="form needs-validation" ng-submit="addBrand()" novalidate>
-                        <div class="form-body">
-                            <!-- Category and Supplier Selection -->
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="categorySelect">Select Category</label>
-                                        <select class="select2 form-control" id="categorySelect"
-                                                ng-model="brandDTO.categoryId"
-                                                ng-options="category.categoryId as category.categoryName for category in categories"
-                                                required>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="brandName">Brand Name</label>
-                                        <div class="position-relative has-icon-left">
-                                            <input type="text" id="brandName"
-                                                   class="form-control"
-                                                   ng-model="brandDTO.brandName"
-                                                   placeholder="Enter Brand Name"
-                                                   name="brandName" required>
-                                            <div class="form-control-position">
-                                                <i class="ft-tag"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                <!-- Text / Number / Date -->
+                                <input ng-if="field.fieldType === 'text' || field.fieldType === 'number' || field.fieldType === 'date'"
+                                       type="{{field.fieldType}}"
+                                       class="form-control"
+                                       ng-model="inputData[field.fieldName]"
+                                       ng-required="field.mandatory">
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="itemCode">Item Code</label>
-                                        <div class="position-relative has-icon-left">
-                                            <input type="text" id="itemCode" class="form-control"
-                                                   ng-model="brandDTO.itemCode"
-                                                   placeholder="Enter Item Code" name="itemCode"
-                                                   required>
-                                            <div class="form-control-position">
-                                                <i class="la la-barcode"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                <!-- Textarea -->
+                                <textarea ng-if="field.fieldType === 'textarea'"
+                                          class="form-control"
+                                          ng-model="inputData[field.fieldName]"
+                                          ng-required="field.mandatory"></textarea>
 
-                            <!-- Description -->
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="descTextarea">Product Description</label>
-                                        <textarea class="form-control" id="descTextarea"
-                                                  rows="3" ng-model="brandDTO.productDescription"
-                                                  placeholder="Enter Product Description"
-                                                  required></textarea>
-                                    </div>
-                                </div>
-                            </div>
+                                <!-- Checkbox -->
+                                <input ng-if="field.fieldType === 'checkbox'"
+                                       type="checkbox"
+                                       class="form-check-input"
+                                       ng-model="inputData[field.fieldName]">
 
-                            <div class="row">
-                                <div class="col-md-6" ng-if="itemCustom.stockNumber.enabled">
-                                    <div class="form-group">
-                                        <label for="taxId">Stock Number</label>
-                                        <div class="position-relative has-icon-left">
-                                            <input type="text" id="stockNumber" class="form-control"
-                                                   ng-model="itemCustom.stockNumber.value"
-                                                   placeholder="Stock Number">
-                                            <div class="form-control-position">
-                                                <i class="la la-id-card"></i>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <select ng-if="field.fieldType === 'selectCompany'"
+                                        class="form-control"
+                                        ng-model="inputData[field.fieldName]"
+                                        ng-options="company.entityId as company.displayName for company in companies"
+                                        ng-change="selectCompany(inputData[field.fieldName])"
+                                        ng-required="field.mandatory">
+                                    <option value="" disabled selected>Select</option>
+                                </select>
+
+                                <select ng-if="field.fieldType === 'selectSubCompany'"
+                                        class="form-control"
+                                        ng-model="inputData[field.fieldName]"
+                                        ng-options="subCompany.entityId as subCompany.displayName for subCompany in selectedSubCompanies"
+                                        ng-change="selectSubCompany(inputData[field.fieldName])"
+                                        ng-required="field.mandatory">
+                                    <option value="" disabled>Select</option>
+                                </select>
+
+                                <div ng-if="field.fieldType === 'selectStores'">
+                                    <select multiple size="5"
+                                            class="form-control"
+                                            ng-model="inputData[field.fieldName]"
+                                            ng-options="store.entityId as store.displayName for store in selectedStores"
+                                            ng-required="field.mandatory">
+                                    </select>
                                 </div>
 
-                                <div class="col-md-6" ng-if="itemCustom.additional.enabled">
-                                    <div class="form-group">
-                                        <label for="Bank Details">Additional Details</label>
-                                        <div class="position-relative has-icon-left">
-                                            <input type="text" id="additional" class="form-control"
-                                                   ng-model="itemCustom.additional.value"
-                                                   placeholder="Additional Details">
-                                            <div class="form-control-position">
-                                                <i class="la la-id-card"></i>
-                                            </div>
-                                        </div>
+                                <select ng-if="field.fieldType === 'selectStore'"
+                                        class="form-control"
+                                        ng-model="inputData[field.fieldName]"
+                                        ng-options="store.entityId as store.displayName for store in selectedStores"
+                                        ng-change="selectStore(inputData[field.fieldName])"
+                                        ng-required="field.mandatory">
+                                    <option value="" disabled>Select</option>
+                                </select>
+
+                                <select ng-if="field.fieldType === 'selectStoreFront'"
+                                        class="form-control"
+                                        ng-model="inputData[field.fieldName]"
+                                        ng-options="storeFront.entityId as storeFront.displayName for storeFront in selectedStoreFronts"
+                                        ng-change="selectStoreFront(inputData[field.fieldName])"
+                                        ng-required="field.mandatory">
+                                    <option value="" disabled>Select</option>
+                                </select>
+
+                                <select ng-if="field.fieldType === 'selectStoreCounter'"
+                                        class="form-control"
+                                        ng-model="inputData[field.fieldName]"
+                                        ng-options="counter.entityId as counter.displayName for counter in selectedCounters"
+                                        ng-required="field.mandatory">
+                                    <option value="" disabled>Select</option>
+                                </select>
+
+                                <!-- Radio Button (example with Yes/No) -->
+                                <div ng-if="field.fieldType === 'radio'">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" ng-model="inputData[field.fieldName]" value="Yes">
+                                        <label class="form-check-label">Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" ng-model="inputData[field.fieldName]" value="No">
+                                        <label class="form-check-label">No</label>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Form Actions -->
-                            <div class="form-actions right">
-                                <button type="button" class="btn btn-danger mr-1"
-                                        data-dismiss="modal">
-                                    <i class="ft-x"></i> Cancel
-                                </button>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="la la-check-square-o"></i> Save
-                                </button>
                             </div>
                         </div>
                     </form>
+                    <div class="mt-4">
+                        <button class="btn btn-primary" ng-click="saveData(type)">Submit</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!--///////// Add Brand Modal ///////////////-->
+<%--    <div class="modal fade text-left" id="addBrandModal" tabindex="-1" role="dialog"--%>
+<%--         aria-labelledby="addProductModalLabel" aria-hidden="true">--%>
+<%--        <div class="modal-dialog modal-lg" role="document">--%>
+<%--            <div class="modal-content">--%>
+
+<%--                <div class="modal-header btn-bg-gradient-x-purple-blue white">--%>
+<%--                    <h4 class="modal-title white" id="addProductModalLabel">Create Item</h4>--%>
+<%--                    <button type="button" class="close white" data-dismiss="modal"--%>
+<%--                            aria-label="Close">--%>
+<%--                        <span aria-hidden="true">&times;</span>--%>
+<%--                    </button>--%>
+<%--                </div>--%>
+
+<%--                <div class="modal-body">--%>
+<%--                    <form class="form needs-validation" ng-submit="addCategory()">--%>
+<%--                        <div class="form-body">--%>
+<%--                            <div class="form-group d-flex justify-content-end">--%>
+<%--                                <div class="dropdown">--%>
+<%--                                    <button class="btn btn-outline-info dropdown-toggle" type="button"--%>
+<%--                                            id="customFieldsDropdown" data-toggle="dropdown"--%>
+<%--                                            aria-haspopup="true" aria-expanded="false">--%>
+<%--                                        Fields--%>
+<%--                                    </button>--%>
+
+<%--                                    <!-- Dropdown Menu with Checkboxes -->--%>
+<%--                                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="customFieldsDropdown">--%>
+<%--                                        <div class="form-check">--%>
+<%--                                            <input class="form-check-input" type="checkbox"--%>
+<%--                                                   ng-model="itemCustom.stockNumber.enabled"--%>
+<%--                                                   ng-change="toggleCustomField('stockNumber')"--%>
+<%--                                                   id="stockNumberCheckbox">--%>
+<%--                                            <label class="form-check-label" for="stockNumberCheckbox">Stock Number</label>--%>
+<%--                                        </div>--%>
+<%--                                        <div class="form-check">--%>
+<%--                                            <input class="form-check-input" type="checkbox"--%>
+<%--                                                   ng-model="itemCustom.additional.enabled"--%>
+<%--                                                   ng-change="toggleCustomField('additional')"--%>
+<%--                                                   id="additionalCheckbox">--%>
+<%--                                            <label class="form-check-label" for="additionalCheckbox">Additional Details</label>--%>
+<%--                                        </div>--%>
+<%--                                    </div>--%>
+<%--                                </div>--%>
+<%--                            </div>--%>
+<%--                            <div class="row">--%>
+<%--                                <div class="col-md-12">--%>
+<%--                                    <div class="form-group">--%>
+<%--                                        <label for="timesheetinput1">Category Name</label>--%>
+<%--                                        <div class="position-relative has-icon-left d-flex align-items-center">--%>
+<%--                                            <div class="input-group">--%>
+<%--                                                <input type="text" id="timesheetinput1"--%>
+<%--                                                       class="form-control"--%>
+<%--                                                       ng-model="categoryName"--%>
+<%--                                                       placeholder="Category Name"--%>
+<%--                                                       name="categoryName">--%>
+<%--                                                <div class="form-control-position">--%>
+<%--                                                    <i class="ft-codepen"></i>--%>
+<%--                                                </div>--%>
+<%--                                            </div>--%>
+
+<%--                                            <button type="submit" class="btn btn-primary ml-2">--%>
+<%--                                                <i class="la la-check-square-o"></i> Save--%>
+<%--                                            </button>--%>
+<%--                                        </div>--%>
+<%--                                    </div>--%>
+<%--                                </div>--%>
+<%--                            </div>--%>
+<%--                        </div>--%>
+<%--                    </form>--%>
+<%--                    <form class="form needs-validation" ng-submit="addBrand()" novalidate>--%>
+<%--                        <div class="form-body">--%>
+<%--                            <!-- Category and Supplier Selection -->--%>
+<%--                            <div class="row">--%>
+<%--                                <div class="col-md-6">--%>
+<%--                                    <div class="form-group">--%>
+<%--                                        <label for="categorySelect">Select Category</label>--%>
+<%--                                        <select class="select2 form-control" id="categorySelect"--%>
+<%--                                                ng-model="brandDTO.categoryId"--%>
+<%--                                                ng-options="category.categoryId as category.categoryName for category in categories"--%>
+<%--                                                required>--%>
+<%--                                        </select>--%>
+<%--                                    </div>--%>
+<%--                                </div>--%>
+<%--                                <div class="col-md-6">--%>
+<%--                                    <div class="form-group">--%>
+<%--                                        <label for="brandName">Brand Name</label>--%>
+<%--                                        <div class="position-relative has-icon-left">--%>
+<%--                                            <input type="text" id="brandName"--%>
+<%--                                                   class="form-control"--%>
+<%--                                                   ng-model="brandDTO.brandName"--%>
+<%--                                                   placeholder="Enter Brand Name"--%>
+<%--                                                   name="brandName" required>--%>
+<%--                                            <div class="form-control-position">--%>
+<%--                                                <i class="ft-tag"></i>--%>
+<%--                                            </div>--%>
+<%--                                        </div>--%>
+<%--                                    </div>--%>
+<%--                                </div>--%>
+<%--                            </div>--%>
+
+<%--                            <div class="row">--%>
+<%--                                <div class="col-md-6">--%>
+<%--                                    <div class="form-group">--%>
+<%--                                        <label for="itemCode">Item Code</label>--%>
+<%--                                        <div class="position-relative has-icon-left">--%>
+<%--                                            <input type="text" id="itemCode" class="form-control"--%>
+<%--                                                   ng-model="brandDTO.itemCode"--%>
+<%--                                                   placeholder="Enter Item Code" name="itemCode"--%>
+<%--                                                   required>--%>
+<%--                                            <div class="form-control-position">--%>
+<%--                                                <i class="la la-barcode"></i>--%>
+<%--                                            </div>--%>
+<%--                                        </div>--%>
+<%--                                    </div>--%>
+<%--                                </div>--%>
+<%--                            </div>--%>
+
+<%--                            <!-- Description -->--%>
+<%--                            <div class="row">--%>
+<%--                                <div class="col-md-12">--%>
+<%--                                    <div class="form-group">--%>
+<%--                                        <label for="descTextarea">Product Description</label>--%>
+<%--                                        <textarea class="form-control" id="descTextarea"--%>
+<%--                                                  rows="3" ng-model="brandDTO.productDescription"--%>
+<%--                                                  placeholder="Enter Product Description"--%>
+<%--                                                  required></textarea>--%>
+<%--                                    </div>--%>
+<%--                                </div>--%>
+<%--                            </div>--%>
+
+<%--                            <div class="row">--%>
+<%--                                <div class="col-md-6" ng-if="itemCustom.stockNumber.enabled">--%>
+<%--                                    <div class="form-group">--%>
+<%--                                        <label for="taxId">Stock Number</label>--%>
+<%--                                        <div class="position-relative has-icon-left">--%>
+<%--                                            <input type="text" id="stockNumber" class="form-control"--%>
+<%--                                                   ng-model="itemCustom.stockNumber.value"--%>
+<%--                                                   placeholder="Stock Number">--%>
+<%--                                            <div class="form-control-position">--%>
+<%--                                                <i class="la la-id-card"></i>--%>
+<%--                                            </div>--%>
+<%--                                        </div>--%>
+<%--                                    </div>--%>
+<%--                                </div>--%>
+
+<%--                                <div class="col-md-6" ng-if="itemCustom.additional.enabled">--%>
+<%--                                    <div class="form-group">--%>
+<%--                                        <label for="Bank Details">Additional Details</label>--%>
+<%--                                        <div class="position-relative has-icon-left">--%>
+<%--                                            <input type="text" id="additional" class="form-control"--%>
+<%--                                                   ng-model="itemCustom.additional.value"--%>
+<%--                                                   placeholder="Additional Details">--%>
+<%--                                            <div class="form-control-position">--%>
+<%--                                                <i class="la la-id-card"></i>--%>
+<%--                                            </div>--%>
+<%--                                        </div>--%>
+<%--                                    </div>--%>
+<%--                                </div>--%>
+<%--                            </div>--%>
+
+<%--                            <!-- Form Actions -->--%>
+<%--                            <div class="form-actions right">--%>
+<%--                                <button type="button" class="btn btn-danger mr-1"--%>
+<%--                                        data-dismiss="modal">--%>
+<%--                                    <i class="ft-x"></i> Cancel--%>
+<%--                                </button>--%>
+<%--                                <button type="submit" class="btn btn-primary">--%>
+<%--                                    <i class="la la-check-square-o"></i> Save--%>
+<%--                                </button>--%>
+<%--                            </div>--%>
+<%--                        </div>--%>
+<%--                    </form>--%>
+<%--                </div>--%>
+<%--            </div>--%>
+<%--        </div>--%>
+<%--    </div>--%>
 
 </div>
 <%@include file="../jspf/Footer.jspf" %>

@@ -10,7 +10,7 @@ import com.synapse.StockMGT.Repos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +28,7 @@ public class InventoryService {
     private final ItemInfoRepo itemInfoRepo;
     private static final Random random = new Random();
 
+    @Transactional(readOnly = true)
     public List<InventoryDTO> getInventory() {
         List<InventoryDTO> inventoryDTOList = new ArrayList<>();
         List<Category> existingCategories = categoryRepo.findAll();
@@ -68,27 +69,38 @@ public class InventoryService {
 
         StringBuilder sb = new StringBuilder();
         Store prevStore = null;
+        List<ItemHistory> histories = new ArrayList<>();
+        List<Item> itemsToSave = new ArrayList<>();
+        String transferredToState = "Transferred to: " + store.getSubCompany().getSubCompanyName();
+        LocalDate now = LocalDate.now();
+
         for (InventoryDTO inventoryDTO : transferReqDTO.getItems()) {
             if(inventoryDTO.getStoreId() != store.getStoreId()) {
                 Item item = itemRepo.findById(inventoryDTO.getItemId())
                         .orElseThrow(() -> new RuntimeException("Item not found"));
                 prevStore = item.getStore();
-                itemHistoryRepo.save(ItemHistory.builder()
+                histories.add(ItemHistory.builder()
                                 .brand(inventoryDTO.getBrand())
                                 .itemCode(inventoryDTO.getItemCode())
                                 .serialNo(item.getSerialNumber())
-                                .currentState("Transferred to: " + store.getSubCompany().getSubCompanyName())
-                                .lastUpdate(LocalDate.now())
+                                .currentState(transferredToState)
+                                .lastUpdate(now)
                                 .build());
 
                 item.setStore(store);
-                item.setLastUpdate(LocalDate.now());
+                item.setLastUpdate(now);
                 item.setCurrentPosition(store.getSubCompany().getSubCompanyName());
-                itemRepo.save(item);
+                itemsToSave.add(item);
                 sb.append(inventoryDTO.getBrand()).append(" ").append(inventoryDTO.getItemCode())
                         .append(" - ").append(item.getSerialNumber())
                         .append("<br><br>");
             }
+        }
+        if (!histories.isEmpty()) {
+            itemHistoryRepo.saveAll(histories);
+        }
+        if (!itemsToSave.isEmpty()) {
+            itemRepo.saveAll(itemsToSave);
         }
         assert prevStore != null;
         transferRepo.save(Transfers.builder()
@@ -116,23 +128,33 @@ public class InventoryService {
 
         StringBuilder sb = new StringBuilder();
         Store prevStore = null;
+        List<ItemHistory> histories = new ArrayList<>();
+        List<Item> itemsToSave = new ArrayList<>();
+        String transferredToState = "Transferred to: " + store.getSubCompany().getSubCompanyName();
+        LocalDate now = LocalDate.now();
 
         for (Item item : items) {
             prevStore = item.getStore();
-            item.setLastUpdate(LocalDate.now());
+            item.setLastUpdate(now);
             item.setCurrentPosition(store.getSubCompany().getSubCompanyName());
             item.setStore(store);
-            itemHistoryRepo.save(ItemHistory.builder()
+            itemsToSave.add(item);
+            histories.add(ItemHistory.builder()
                             .brand(bulkTransferDTO.getBrand())
                             .itemCode(bulkTransferDTO.getItemCode())
                             .serialNo(item.getSerialNumber())
-                            .currentState("Transferred to: " + store.getSubCompany().getSubCompanyName())
-                            .lastUpdate(LocalDate.now())
+                            .currentState(transferredToState)
+                            .lastUpdate(now)
                             .build());
-            itemRepo.save(item);
             sb.append(bulkTransferDTO.getBrand()).append(" ").append(bulkTransferDTO.getItemCode())
                     .append(" - ").append(item.getSerialNumber())
                     .append("<br><br>");
+        }
+        if (!histories.isEmpty()) {
+            itemHistoryRepo.saveAll(histories);
+        }
+        if (!itemsToSave.isEmpty()) {
+            itemRepo.saveAll(itemsToSave);
         }
         assert prevStore != null;
 
