@@ -1,3 +1,5 @@
+https://stockmgt.duckdns.org/login
+
 # Remote Deployment - Spring Boot WAR to External Apache Tomcat on Linux Servers.
 ---
 ## Prerequisites
