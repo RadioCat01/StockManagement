@@ -146,7 +146,6 @@ public class JobService {
                                     .defectiveDetails(item.getDefectiveDetails())
                                     .remainingSupplierWarranty(item.getRemainingSupplierWarranty())
                                     .remainingSellerWarranty(item.getRemainingSellerWarranty())
-                                    .barcodeImage(item.getBarCodeImage())
                                     .isWarrantyClaimed(item.isWarrantyClaimed())
                                     .replacedItem(ReplacedItemDTO.builder()
                                             .description(
@@ -286,7 +285,6 @@ public class JobService {
                         .description(jobItem.getDescription())
                         .serial(jobItem.getSerial())
                         .defectiveDetails(jobItem.getDefectiveDetails())
-                        .barcodeImage(jobItem.getBarCodeImage())
                         .isWarrantyClaimed(jobItem.isWarrantyClaimed())
                         .remainingSupplierWarranty(jobItem.getRemainingSupplierWarranty())
                         .remainingSellerWarranty(jobItem.getRemainingSellerWarranty())

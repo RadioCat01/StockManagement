@@ -8,9 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -22,9 +20,25 @@ public class InventoryController {
     Logger controllerLogger = Logger.getLogger("AUDIT");
 
     @GetMapping("/inv")
-    public ResponseEntity<?> inv() {
+    public ResponseEntity<Map<String, Object>> inv(
+            @RequestParam(defaultValue = "1") int draw,
+            @RequestParam(defaultValue = "0") int start,
+            @RequestParam(defaultValue = "10") int length,
+            @RequestParam(required = false) Integer storeId,
+            @RequestParam(name = "order[0][column]", defaultValue = "0") int sortColumn,
+            @RequestParam(name = "order[0][dir]", defaultValue = "asc") String sortDirection,
+            @RequestParam(name = "search[value]", defaultValue = "") String search) {
         controllerLogger.info("Inventory Controller Called.");
-        return ResponseEntity.ok(inventoryService.getInventory());
+        int pageSize = Math.max(1, Math.min(length, 100));
+        int page = Math.max(start, 0) / pageSize;
+        var inventory = inventoryService.getInventory(storeId, page, pageSize, search, sortColumn, sortDirection);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("draw", Math.max(draw, 0));
+        response.put("recordsTotal", inventoryService.countInventory(storeId));
+        response.put("recordsFiltered", inventory.getTotalElements());
+        response.put("data", inventory.getContent());
+        return ResponseEntity.ok(response);
     }
     @GetMapping("/trf")
     public ResponseEntity<?> trf() {

@@ -49,35 +49,44 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
     };
 
     const inventoryTable = $('#inventoryTable').DataTable({
+        processing: true,
+        serverSide: true,
+        searchDelay: 350,
         paging: true,
         searching: true,
         ordering: true,
-        destroy: true,
-    });
-
-    $('#inventoryTable tfoot th').each(function () {
-        var title = $(this).text();
-        $(this).html('<input type="text" placeholder="Search ' + title + '" />');
-    });
-    inventoryTable.columns().every(function () {
-        var column = this;
-
-        $('input', column.footer()).on('keyup change', function () {
-            if (column.search() !== this.value) {
-                column
-                    .search(this.value)
-                    .draw();
+        ajax: {
+            url: APP_CONFIG.apiBase + '/inventoryCont/inv',
+            data: function (request) {
+                if ($scope.selectedStore) {
+                    request.storeId = $scope.selectedStore;
+                }
+            },
+            dataSrc: function (response) {
+                $scope.inventoryDTOs = response.data;
+                $scope.$evalAsync();
+                return response.data;
             }
-        });
+        },
+        columns: [
+            {
+                data: null,
+                render: function (data, type, item) {
+                    return `${item.category || ''}<br>${item.brand || ''}`;
+                }
+            },
+            { data: 'itemCode', defaultContent: '' },
+            { data: 'description', defaultContent: '' },
+            { data: 'productSerial', defaultContent: '' },
+            { data: 'grnDate', defaultContent: '' },
+            { data: 'lastUpdate', defaultContent: '' },
+            { data: 'stockType', defaultContent: '' }
+        ]
     });
+
     $('#inventoryTable tbody').on('click', 'tr', function () {
         const $row = $(this);
-        const rowIndex = inventoryTable.row(this).index();
-
-        if (rowIndex === undefined || rowIndex === null) {
-            return;
-        }
-        const selectedItem = $scope.inventoryDTOs[rowIndex];
+        const selectedItem = inventoryTable.row(this).data();
         if (!selectedItem) {
             return;
         }
@@ -98,12 +107,8 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
 
 
     $scope.onStoreSelect = function() {
-        if (!$scope.selectedStore) {
-            inventoryTable.clear().draw();
-            $scope.inventoryDTOs = [];
-            return;
-        }
-        fetchAndRenderInventory($scope.selectedStore);
+        $scope.selectedItems = [];
+        inventoryTable.ajax.reload();
     };
 
 
@@ -195,7 +200,7 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
             })
             $http.post(APP_CONFIG.apiBase + `/inventoryCont/transfer`, $scope.toTransfer)
                 .then(function (res){
-                    fetchAndRenderInventory($scope.selectedStore);
+                    inventoryTable.ajax.reload(null, false);
                     clearFields();
                     getCategories();
                     getTransfers();
@@ -230,7 +235,7 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
             && $scope.bulkTransferDTO.reason !=null){
             $http.post(APP_CONFIG.apiBase + `/inventoryCont/transferBulk`, $scope.bulkTransferDTO)
                 .then(function (res){
-                    fetchAndRenderInventory();
+                    inventoryTable.ajax.reload(null, false);
                     clearBulkTransferFields();
                     getTransfers();
                     getCategories();
@@ -259,36 +264,6 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
         $scope.fromSelectedStore=null;
     }
 
-    function fetchAndRenderInventory(filterStoreId) {
-        $http.get(APP_CONFIG.apiBase + `/inventoryCont/inv`)
-            .then(function (res) {
-                const allInventory = res.data;
-                console.log(allInventory);
-                if (!Array.isArray(allInventory)) {
-                    return;
-                }
-
-                $scope.inventoryDTOs = filterStoreId
-                    ? allInventory.filter(inv => inv.storeId === filterStoreId)
-                    : allInventory;
-
-                inventoryTable.clear();
-                $scope.inventoryDTOs.forEach(function (inv) {
-                    inventoryTable.row.add([
-                        `${inv.category || ''}<br>${inv.brand || ''}`,
-                        inv.itemCode || '',
-                        inv.description || '',
-                        inv.productSerial || '',
-                        inv.grnDate || '',
-                        inv.lastUpdate || '',
-                        inv.stockType || '',
-                    ]);
-                });
-                inventoryTable.draw();
-            }, function (err) {
-                toastr.warning('Something Went Wrong!', 'Error');
-            });
-    }
     function getTransfers(){
         $http.get(APP_CONFIG.apiBase + '/inventoryCont/trf')
             .then(function (res){
@@ -358,6 +333,5 @@ angular.module('Stock').controller('InventoryCont', function ($scope, $http, $ti
 
     getCategories();
     getStores();
-    fetchAndRenderInventory();
     getTransfers();
 });

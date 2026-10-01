@@ -8,9 +8,13 @@ import com.synapse.StockMGT.Models.*;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Store;
 import com.synapse.StockMGT.Repos.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +24,16 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class InventoryService {
 
-    private final CategoryRepo categoryRepo;
+    private static final String[] INVENTORY_SORT_EXPRESSIONS = {
+            "coalesce(c.categoryName, g.categoryName)",
+            "coalesce(g.itemCode, info.itemCode)",
+            "coalesce(g.productDescription, info.itemDescription)",
+            "i.serialNumber",
+            "g.grnDate",
+            "i.lastUpdate",
+            "i.stockType"
+    };
+
     private final TransferRepo transferRepo;
     private final ItemRepo itemRepo;
     private final StoreRepo storeRepo;
@@ -29,33 +42,23 @@ public class InventoryService {
     private static final Random random = new Random();
 
     @Transactional(readOnly = true)
-    public List<InventoryDTO> getInventory() {
-        List<InventoryDTO> inventoryDTOList = new ArrayList<>();
-        List<Category> existingCategories = categoryRepo.findAll();
+    public Page<InventoryDTO> getInventory(
+            Integer storeId, int page, int size, String search, int sortColumn, String sortDirection) {
+        String sortExpression = INVENTORY_SORT_EXPRESSIONS[
+                Math.max(0, Math.min(sortColumn, INVENTORY_SORT_EXPRESSIONS.length - 1))];
+        Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection)
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
 
-        for (Category category : existingCategories) {
-            for (Brand brand : category.getBrands()) {
-                for (SupplierGRN grn: brand.getSupplierGRNs()){
-                    for(Item item: grn.getItems()){
-                        inventoryDTOList.add(InventoryDTO.builder()
-                                        .itemId(item.getItemId())
-                                        .brand(brand.getBrandName())
-                                        .itemCode(grn.getItemCode())
-                                        .description(grn.getProductDescription())
-                                        .productSerial(item.getSerialNumber())
-                                        .category(category.getCategoryName())
-                                        .grnDate(grn.getGrnDate())
-                                        .storeId(item.getStore().getStoreId())
-                                        .grnDate(grn.getGrnDate())
-                                        .lastUpdate(item.getLastUpdate())
-                                        .currentPosition(item.getCurrentPosition())
-                                        .stockType(item.getStockType())
-                                        .build());
-                    }
-                }
-            }
-        }
-        return inventoryDTOList;
+        return itemRepo.findInventory(
+                storeId,
+                search.trim(),
+                PageRequest.of(page, size, JpaSort.unsafe(direction, sortExpression)));
+    }
+
+    @Transactional(readOnly = true)
+    public long countInventory(Integer storeId) {
+        return itemRepo.countInventoryByStoreId(storeId);
     }
 
     public List<Transfers> getTransfers() {
