@@ -1,17 +1,34 @@
-FROM maven:3.9.3-eclipse-temurin-17 AS build
+# Stage 1: Build the WAR application
+FROM maven:3.9.3-eclipse-temurin-17-alpine AS builder
 WORKDIR /app
+
+# Cache Maven dependencies
 COPY pom.xml .
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline
+
+# Copy source and build WAR
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 
-FROM tomcat:9.0.108-jre17-temurin-noble
-RUN rm -rf /usr/local/tomcat/webapps/*
+# Stage 2: Deploy on minimal Tomcat runtime
+FROM tomcat:9.0-jre17-temurin-jammy
+WORKDIR /usr/local/tomcat
 
-COPY --from=build /app/target/Stockmgt-2.7.18.war /usr/local/tomcat/webapps/ROOT.war
+# Remove default webapps to reduce footprint and attack surface
+RUN rm -rf webapps/* webapps.dist/*
+
+# Create non-root user for secure execution
+RUN groupadd -r tomcat && useradd -r -g tomcat -d /usr/local/tomcat tomcat \
+    && chown -R tomcat:tomcat /usr/local/tomcat
+
+# Deploy WAR at root context
+COPY --from=builder --chown=tomcat:tomcat /app/target/Stockmgt-2.7.18.war webapps/ROOT.war
+
+USER tomcat:tomcat
 
 EXPOSE 8080
 
-CMD ["catalina.sh", "run"]
-## Set JVM options to reduce memory usage
-#ENV JAVA_OPTS="-Xmx128m -Xms64m -XX:MaxMetaspaceSize=32m -XX:ReservedCodeCacheSize=32m -Xss256k"
+# JVM tuning: container-aware heap sizing for resource efficiency
+ENV CATALINA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
+CMD ["catalina.sh", "run"]

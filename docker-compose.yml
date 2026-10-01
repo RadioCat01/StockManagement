@@ -2,12 +2,12 @@ version: '3.8'
 
 services:
   app:
-    image: radiocat2000/stock
+    image: radiocat2000/stock:v1
     container_name: stock-app
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/stock
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ep-twilight-darkness-a10m1qtu-pooler.ap-southeast-1.aws.neon.tech/stock?user=neondb_owner&password=npg_7EGx3vYfAaVh&sslmode=require&channelBinding=require
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: kanishka23
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
