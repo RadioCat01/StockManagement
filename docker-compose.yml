@@ -7,9 +7,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://ep-twilight-darkness-a10m1qtu-pooler.ap-southeast-1.aws.neon.tech/stock?user=neondb_owner&password=npg_7EGx3vYfAaVh&sslmode=require&channelBinding=require
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: kanishka23
+      SPRING_DATASOURCE_URL: 
+      SPRING_DATASOURCE_USERNAME: 
+      SPRING_DATASOURCE_PASSWORD: 
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
       BPL_JVM_CALCULATE_HEAP: false
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
