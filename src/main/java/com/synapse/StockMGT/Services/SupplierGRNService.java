@@ -7,6 +7,9 @@ import com.synapse.StockMGT.Models.ItemInfo;
 import com.synapse.StockMGT.Models.SupplierGRN;
 import com.synapse.StockMGT.Repos.ItemInfoRepo;
 import com.synapse.StockMGT.Repos.SupplierGRNRepo;
+import com.synapse.StockMGT.User.AccessScopeService;
+import com.synapse.StockMGT.User.User;
+import com.synapse.StockMGT.User.Roles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +26,13 @@ public class SupplierGRNService {
 
     private final SupplierGRNRepo supplierGRNRepo;
     private final ItemInfoRepo itemInfoRepo;
+    private final AccessScopeService accessScope;
 
     public ResponseEntity<?> getAllGRNsForSupplier(Integer supplierId) {
-        List<SupplierGRN> grnList = supplierGRNRepo.findBySupplierId(supplierId);
+        User currentUser = User.currentUser();
+        List<SupplierGRN> grnList = currentUser.hasRole(Roles.PLATFORM_ADMIN)
+                ? supplierGRNRepo.findBySupplierId(supplierId)
+                : supplierGRNRepo.findBySupplierIdAndCompany_CompanyId(supplierId, accessScope.companyId());
         List<SupplierGRNDTO> grnDTOList = new ArrayList<>();
 
         if (grnList.isEmpty()) {

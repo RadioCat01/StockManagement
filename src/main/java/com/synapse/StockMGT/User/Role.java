@@ -1,5 +1,6 @@
 package com.synapse.StockMGT.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -21,5 +22,6 @@ public class Role {
     private Roles roleName;
 
     @ManyToMany(mappedBy = "roles")
+    @JsonIgnore
     private List<User> users;
 }

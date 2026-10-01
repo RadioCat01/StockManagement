@@ -6,6 +6,9 @@ import com.synapse.StockMGT.Models.*;
 import com.synapse.StockMGT.Repos.InvoiceRepo;
 import com.synapse.StockMGT.Repos.ItemInfoRepo;
 import com.synapse.StockMGT.Repos.SupplierGRNRepo;
+import com.synapse.StockMGT.User.AccessScopeService;
+import com.synapse.StockMGT.User.Roles;
+import com.synapse.StockMGT.User.User;
 import com.synapse.StockMGT.Util.WarrantyCal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,15 +25,30 @@ public class InvoiceService {
     private final ItemInfoRepo itemInfoRepo;
     private final SupplierGRNRepo supplierGRNRepo;
     private final WarrantyCal warrantyCal;
+    private final AccessScopeService accessScope;
 
     @Transactional(readOnly = true)
-    public List<?> getAllInvoices() {
-        List<Invoice> invoices = invoiceRepo.findAll();
-        List<InvoiceDTO> invoiceDTOs = new ArrayList<>();
-        for (Invoice invoice : invoices) {
-            invoiceDTOs.add(getInvoiceData(invoice));
-        }
-        return invoiceDTOs;
+    public List<InvoiceDTO> getAllInvoices() {
+        User user = User.currentUser();
+        List<Invoice> invoices = user.hasRole(Roles.PLATFORM_ADMIN)
+                ? invoiceRepo.findAll()
+                : invoiceRepo.findAllByCompany_CompanyId(accessScope.companyId());
+        return invoices.stream()
+                .filter(this::canAccessInvoice)
+                .map(invoice -> InvoiceDTO.builder()
+                        .invoiceId(invoice.getInvoiceId())
+                        .poReference(invoice.getPoReference())
+                        .customerName(invoice.getCustomerName())
+                        .customerPhone(invoice.getCustomerPhone())
+                        .invoiceNumber(invoice.getInvoiceNumber())
+                        .invoiceDate(invoice.getInvoiceDate())
+                        .paymentTerms(invoice.getPaymentTerms())
+                        .subTotal(invoice.getSubTotal())
+                        .vat(invoice.getVat())
+                        .saleType(invoice.getSales().getSaleType())
+                        .totalInvoice(invoice.getTotalInvoice())
+                        .build())
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -48,6 +66,7 @@ public class InvoiceService {
 
     @Transactional(readOnly = true)
     public InvoiceDTO getInvoiceData(Invoice invoice) {
+        requireInvoiceAccess(invoice);
         List<ProductInvoiceDTO> invoicingProducts = new ArrayList<>();
         double total = 0.0;
         double unitPrice = 0.0;
@@ -120,6 +139,7 @@ public class InvoiceService {
     public String updateInvoice(InvoiceDTO invoice) {
        Invoice existingInvoice = invoiceRepo.findById(invoice.getInvoiceId())
                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+       requireInvoiceAccess(existingInvoice);
 
        existingInvoice.setCustomerName(invoice.getCustomerName());
        existingInvoice.setCustomerPhone(invoice.getCustomerPhone());
@@ -133,8 +153,10 @@ public class InvoiceService {
        return invoiceRepo.save(existingInvoice).getInvoiceNumber();
     }
 
+    @Transactional(readOnly = true)
     public InvoiceDTO getInvoiceByNumber(String number) {
         return invoiceRepo.findByInvoiceNumber(number).map(invoice -> {
+            requireInvoiceAccess(invoice);
             List<SoldProducts> products = invoice.getSales().getSoldProducts();
             List<Integer> grnIds = new ArrayList<>();
             for (SoldProducts product : products) {
@@ -180,5 +202,32 @@ public class InvoiceService {
                     .build();
                 })
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
+    }
+
+    private boolean canAccessInvoice(Invoice invoice) {
+        User user = User.currentUser();
+        if (user.hasRole(Roles.PLATFORM_ADMIN)) {
+            return true;
+        }
+        if (user.getCompany() == null || invoice.getCompany() == null
+                || !user.getCompany().getCompanyId().equals(invoice.getCompany().getCompanyId())) {
+            return false;
+        }
+        if (!user.hasRole(Roles.CASHIER)) {
+            return true;
+        }
+        return invoice.getSales().getSoldProducts().stream()
+                .map(SoldProducts::getStore)
+                .filter(java.util.Objects::nonNull)
+                .anyMatch(store -> store.getStoreFronts().stream().anyMatch(front ->
+                        user.getStoreFront() != null
+                                && front.getStorefrontId().equals(user.getStoreFront().getStorefrontId())));
+    }
+
+    private void requireInvoiceAccess(Invoice invoice) {
+        if (!canAccessInvoice(invoice)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You cannot access this company's invoice.");
+        }
     }
 }

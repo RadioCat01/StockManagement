@@ -13,6 +13,8 @@ import com.synapse.StockMGT.DTOs.*;
 import com.synapse.StockMGT.Enums.JobStatus;
 import com.synapse.StockMGT.Models.*;
 import com.synapse.StockMGT.Repos.*;
+import com.synapse.StockMGT.User.AccessScopeService;
+import com.synapse.StockMGT.User.User;
 import com.synapse.StockMGT.Util.WarrantyCal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,8 +38,10 @@ public class JobService {
     private final ReplacementNoteRepo replacementNoteRepo;
     private final JobNote_FieldsRepo jobNote_FieldsRepo;
     private final JobNote_DataRepo jobNote_DataRepo;
+    private final AccessScopeService accessScope;
 
     public JobResDTO addJob(JobDTO job) throws Exception {
+        var company = accessScope.requireCompany(accessScope.companyId());
         JobNotes note = JobNotes.builder()
                 .jobNumber(generateJobNumber(job))
                 .jobDate(LocalDate.now())
@@ -47,6 +51,7 @@ public class JobService {
                 .status(JobStatus.PENDING)
                 .customerName(job.getCustomerName())
                 .customerPhone(job.getCustomerPhone())
+                .company(company)
                 .build();
         note.setJobItems(job.getJobItems().stream().map(
                 item -> JobItem.builder()
@@ -57,6 +62,7 @@ public class JobService {
                         .remainingSellerWarranty(item.getRemainingSellerWarranty())
                         .barCode(generateBarcodeUUID())
                         .isWarrantyClaimed(false)
+                        .company(company)
                         .build()
         ).toList());
         for (JobItem item : note.getJobItems()) {
@@ -130,7 +136,10 @@ public class JobService {
 
     @Transactional(readOnly = true)
     public List<JobResDTO> getJobs() {
-        return jobNoteRepo.findAll().stream().map(job ->
+        return jobNoteRepo.findAll().stream()
+            .filter(job -> job.getCompany() != null
+                    && accessScope.isCompanyVisible(job.getCompany().getCompanyId()))
+            .map(job ->
             JobResDTO.builder()
                     .jobNumber(job.getJobNumber())
                     .jobDate(job.getJobDate())
@@ -165,6 +174,11 @@ public class JobService {
     public JobResDTO claimWarranty(JobDTO job) {
         JobNotes note = jobNoteRepo.findByJobNumber(job.getJobNumber())
                 .orElseThrow(() -> new RuntimeException("Job number not found"));
+        if (note.getCompany() == null
+                || !accessScope.isCompanyVisible(note.getCompany().getCompanyId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "The selected job belongs to another company.");
+        }
 
         List<String> claimSerials = job.getClaimSerials() != null
                 ? new ArrayList<>(job.getClaimSerials())
@@ -188,6 +202,10 @@ public class JobService {
 
             Item replacingItem = itemRepo.findBySerialNumber(replacingSerial)
                     .orElseThrow(() -> new RuntimeException("No replacing item found with serial number " + replacingSerial));
+            if (replacingItem.getStore() == null) {
+                throw new IllegalArgumentException("Replacement stock must be assigned to a store.");
+            }
+            accessScope.requireStore(replacingItem.getStore().getStoreId());
 
             JobItem jobItem = note.getJobItems().stream()
                     .filter(j -> j.getSerial().equalsIgnoreCase(item.getSerial()))
@@ -197,6 +215,8 @@ public class JobService {
             jobItem.setReplacedItem(ReplacedItem.builder()
                     .description(replacingItem.getItemInfo().getItemDescription())
                     .serialNumber(replacingItem.getSerialNumber())
+                    .company(note.getCompany())
+                    .subCompany(replacingItem.getSubCompany())
                     .build());
             jobItem.setWarrantyClaimed(true);
 
@@ -238,7 +258,6 @@ public class JobService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
     private void createRepNote(JobDTO job, JobNotes note) {
         if(note.getReplacementNote() == null){
             ReplacementNote repNote = replacementNoteRepo.save(ReplacementNote.builder()
@@ -247,6 +266,8 @@ public class JobService {
                             .jobNotes(note)
                             .customerName(job.getCustomerName())
                             .customerPhone(job.getCustomerPhone())
+                            .company(note.getCompany())
+                            .subCompany(note.getSubCompany())
                             .build());
             note.setReplacementNote(repNote);
             jobNoteRepo.save(note);
@@ -261,6 +282,8 @@ public class JobService {
     @Transactional(readOnly = true)
     public List<ReplacementNotesDTO> getRepNotes() {
         return replacementNoteRepo.findAll().stream()
+                .filter(repNote -> repNote.getJobNotes().getCompany() != null
+                        && accessScope.isCompanyVisible(repNote.getJobNotes().getCompany().getCompanyId()))
                 .flatMap(repNote ->
                         repNote.getJobNotes().getJobItems().stream()
                                 .map(jobItem -> ReplacementNotesDTO.builder()
@@ -280,7 +303,10 @@ public class JobService {
 
     @Transactional(readOnly = true)
     public List<JobItemsDTO> getDefects() {
-        return jobNoteRepo.findAll().stream().flatMap(jobNote ->jobNote
+        return jobNoteRepo.findAll().stream()
+                .filter(jobNote -> jobNote.getCompany() != null
+                        && accessScope.isCompanyVisible(jobNote.getCompany().getCompanyId()))
+                .flatMap(jobNote ->jobNote
                 .getJobItems().stream().map(jobItem -> JobItemsDTO.builder()
                         .description(jobItem.getDescription())
                         .serial(jobItem.getSerial())

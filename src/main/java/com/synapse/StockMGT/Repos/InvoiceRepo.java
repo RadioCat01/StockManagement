@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface InvoiceRepo extends JpaRepository<Invoice, Integer> {
     Optional<Invoice> findByInvoiceNumber(String invoiceNumber);
+    java.util.List<Invoice> findAllByCompany_CompanyId(Integer companyId);
 }

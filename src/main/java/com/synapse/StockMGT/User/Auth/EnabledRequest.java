@@ -5,10 +5,7 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class LoginReq {
-    private String username;
-    private String password;
-
+public class EnabledRequest {
     @NotNull
-    private LoginAudience loginType;
+    private Boolean enabled;
 }

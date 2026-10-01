@@ -10,6 +10,9 @@ import com.synapse.StockMGT.Models.*;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Store;
 import com.synapse.StockMGT.Models.CompanyHierarchy.SubCompany;
 import com.synapse.StockMGT.Repos.*;
+import com.synapse.StockMGT.User.AccessScopeService;
+import com.synapse.StockMGT.User.Roles;
+import com.synapse.StockMGT.User.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,11 +33,15 @@ public class ManagementService {
     private final SupplierRepo supplierRepo;
     private final SupplierGRNRepo supplierGRNRepo;
     private final ItemHistoryRepo itemHistoryRepo;
+    private final AccessScopeService accessScope;
 
     @Transactional(readOnly = true)
     public List<FlatCatDTO> getFlatCat() {
         List<FlatCatDTO> flatCatDTOList = new ArrayList<>();
-        List<Category> categoryList = categoryRepo.findAll();
+        List<Category> categoryList = categoryRepo.findAll().stream()
+                .filter(category -> category.getCompany() != null
+                        && accessScope.isCompanyVisible(category.getCompany().getCompanyId()))
+                .toList();
 
         for (Category category : categoryList) {
             if (!category.getBrands().isEmpty()) {
@@ -76,12 +83,19 @@ public class ManagementService {
     }
 
     public String createCategory(String categoryName) {
+        var company = accessScope.requireCompany(accessScope.companyId());
         Optional<Category> existingCategory = categoryRepo.findByCategoryName(categoryName);
         if(existingCategory.isPresent()){
+            if (existingCategory.get().getCompany() == null
+                    || !existingCategory.get().getCompany().getCompanyId().equals(company.getCompanyId())) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "A category with this name belongs to another company.");
+            }
             return existingCategory.get().getCategoryName();
         }else {
             return categoryRepo.save(Category.builder()
                             .categoryName(categoryName)
+                            .company(company)
                             .build()).getCategoryName();
         }
     }
@@ -90,6 +104,11 @@ public class ManagementService {
         Brand existingBrand = brandRepo.findByBrandNameIgnoreCase(brandDTO.getBrandName().trim()).orElse(null);
 
         if (existingBrand != null) {
+            if (existingBrand.getCompany() == null
+                    || !accessScope.isCompanyVisible(existingBrand.getCompany().getCompanyId())) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "A brand with this name belongs to another company.");
+            }
 
             List<ItemInfo> existingItemInfo = itemInfoRepo.findByBrand(existingBrand);
             for (ItemInfo itemInfo : existingItemInfo) {
@@ -107,10 +126,18 @@ public class ManagementService {
             }
 
         } else {
+            Category category = categoryRepo.findById(brandDTO.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            if (category.getCompany() == null
+                    || !accessScope.isCompanyVisible(category.getCompany().getCompanyId())) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "The selected category does not belong to your company.");
+            }
             Brand newBrand = Brand.builder()
-                            .category(categoryRepo.findById(brandDTO.getCategoryId())
-                            .orElseThrow(() -> new RuntimeException("Category not found")))
-                            .brandName(brandDTO.getBrandName()).build();
+                    .category(category)
+                    .company(category.getCompany())
+                    .subCompany(category.getSubCompany())
+                    .brandName(brandDTO.getBrandName()).build();
 
 
             ItemInfo savedItemInfo = ItemInfo.builder()
@@ -125,6 +152,8 @@ public class ManagementService {
     }
 
     private String setCustomFields(BrandDTO brandDTO, ItemInfo savedItemInfo) {
+        savedItemInfo.setCompany(savedItemInfo.getBrand().getCompany());
+        savedItemInfo.setSubCompany(savedItemInfo.getBrand().getSubCompany());
         if(brandDTO.getCustomFields()!=null){
             for (CustomFields_item customField : brandDTO.getCustomFields()) {
                 savedItemInfo.getCustomFields().add(CustomFields_item.builder()
@@ -144,15 +173,40 @@ public class ManagementService {
     public String createItem(ItemDTO itemDTO) {
         ItemInfo itemInfo = itemInfoRepo.findByItemCode(itemDTO.getItemCode())
                 .orElseThrow(() -> new RuntimeException("Item not found"));
+        if (itemInfo.getCompany() == null
+                || !accessScope.isCompanyVisible(itemInfo.getCompany().getCompanyId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "The selected item does not belong to your company.");
+        }
 
         Supplier supplier = supplierRepo.findById(itemDTO.getSupplierId())
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
+        if (supplier.getCompany() == null
+                || !supplier.getCompany().getCompanyId().equals(itemInfo.getCompany().getCompanyId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "The selected supplier does not belong to your company.");
+        }
 
         Brand brand = brandRepo.findById(itemDTO.getBrandId())
                 .orElseThrow(() -> new RuntimeException("Brand not found"));
+        if (brand.getCompany() == null
+                || !brand.getCompany().getCompanyId().equals(itemInfo.getCompany().getCompanyId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "The selected brand does not belong to your company.");
+        }
 
-        Store store = storeRepo.findById(itemDTO.getStore())
-                .orElseThrow(() -> new RuntimeException("Store not found"));
+        Store store = accessScope.requireStore(itemDTO.getStore());
+        if (!store.getCompany().getCompanyId().equals(itemInfo.getCompany().getCompanyId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "The selected store does not belong to your company.");
+        }
+        Category category = categoryRepo.findById(itemDTO.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        if (category.getCompany() == null
+                || !category.getCompany().getCompanyId().equals(itemInfo.getCompany().getCompanyId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "The selected category does not belong to your company.");
+        }
 
 
         String grnDateStr = itemDTO.getGrnDate();
@@ -166,7 +220,7 @@ public class ManagementService {
 
         SupplierGRN savingGRN = SupplierGRN.builder()
                 .supplierId(itemDTO.getSupplierId())
-                .categoryName(categoryRepo.findById(itemDTO.getCategoryId()).orElseThrow().getCategoryName())
+                .categoryName(category.getCategoryName())
                 .brandName(brand.getBrandName())
                 .productDescription(itemInfo.getItemDescription())
                 .warranty(itemDTO.getWarranty())
@@ -181,6 +235,8 @@ public class ManagementService {
                 .grnDate(date)
                 .store(itemDTO.getStore())
                 .supplierInvoiceNumber(itemDTO.getSupplierInvoiceNumber())
+                .company(itemInfo.getCompany())
+                .subCompany(store.getSubCompany())
                 .build();
 
         if(itemDTO.getCustomFields()!=null){
@@ -211,6 +267,8 @@ public class ManagementService {
             Item newItem = Item.builder()
                     .serialNumber(serial)
                     .supplier(supplier)
+                    .company(itemInfo.getCompany())
+                    .subCompany(store.getSubCompany())
                     .cost(itemDTO.getItemCost())
                     .dealerPrice(itemDTO.getDealerPrice())
                     .retailPrice(itemDTO.getRetailPrice())
@@ -232,23 +290,26 @@ public class ManagementService {
             return itemDTO.getItemCode();
     }
 
-    public void recordItemHistory(List<Item> item, Brand brand, ItemInfo itemInfo, Store store) {
+    public void recordItemHistory(List<Item> items, Brand brand, ItemInfo itemInfo, Store store) {
         List<ItemHistory> histories = new ArrayList<>();
         String state = "Added to stock: "+store.getSubCompany().getSubCompanyName()+" - "+store.getStoreName();
         LocalDate now = LocalDate.now();
-        for (Item i : item) {
+        for (Item i : items) {
             histories.add(ItemHistory.builder()
                     .brand(brand.getBrandName())
                     .itemCode(itemInfo.getItemCode())
                     .serialNo(i.getSerialNumber())
                     .currentState(state)
                     .lastUpdate(now)
+                    .company(i.getCompany())
+                    .subCompany(i.getSubCompany())
                     .build());
         }
         itemHistoryRepo.saveAll(histories);
     }
 
     public Supplier saveSupplier(SupplierReqDTO supplierDTO){
+        var company = accessScope.requireCompany(accessScope.companyId());
         Supplier supplier = Supplier.builder()
                 .name(supplierDTO.getName())
                 .address(supplierDTO.getAddress())
@@ -256,6 +317,7 @@ public class ManagementService {
                 .contactNumber(String.valueOf(supplierDTO.getContactNumber()))
                 .paymentTerms(supplierDTO.getPaymentTerms())
                 .period(supplierDTO.getPeriod())
+                .company(company)
                 .build();
         if (supplierDTO.getCustomFields() != null) {
             for (CustomFields_supplier field : supplierDTO.getCustomFields()) {
@@ -273,6 +335,8 @@ public class ManagementService {
 
     public List<SupplierResDTO> getSupplierRES() {
         return supplierRepo.findAll().stream()
+                .filter(supplier -> supplier.getCompany() != null
+                        && accessScope.isCompanyVisible(supplier.getCompany().getCompanyId()))
                 .map(s -> {
                     Map<String, String> customFieldMap = s.getCustomFields().stream()
                             .collect(Collectors.toMap(
@@ -297,7 +361,10 @@ public class ManagementService {
     }
 
     public List<StoreDTO> getStores() {
-        return storeRepo.findAll().stream().map(st ->
+        return storeRepo.findAll().stream()
+                .filter(store -> store.getCompany() != null
+                        && accessScope.isCompanyVisible(store.getCompany().getCompanyId()))
+                .map(st ->
                 StoreDTO.builder()
                         .storeId(st.getStoreId())
                         .storeName(st.getStoreName())
@@ -306,7 +373,10 @@ public class ManagementService {
 
     @Transactional(readOnly = true)
     public List<CategoryDTO> getCategories() {
-        List<Category> categories = categoryRepo.findAll();
+        List<Category> categories = categoryRepo.findAll().stream()
+                .filter(category -> category.getCompany() != null
+                        && accessScope.isCompanyVisible(category.getCompany().getCompanyId()))
+                .toList();
         List<CategoryDTO> categoriesDTO = new ArrayList<>();
 
         for (Category category : categories) {

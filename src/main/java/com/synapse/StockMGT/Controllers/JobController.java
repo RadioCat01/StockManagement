@@ -4,6 +4,7 @@ import com.synapse.StockMGT.DTOs.JobDTO;
 import com.synapse.StockMGT.Services.JobService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.logging.Logger;
@@ -11,6 +12,7 @@ import java.util.logging.Logger;
 @RestController
 @RequestMapping("/job")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('COMPANY_ADMIN', 'STOCK_CLERK')")
 public class JobController {
 
     private final JobService jobService;

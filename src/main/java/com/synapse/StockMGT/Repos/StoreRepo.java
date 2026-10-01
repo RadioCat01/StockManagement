@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface StoreRepo extends JpaRepository<Store, Integer> {
     Optional<Store> findByStoreName(String name);
+    java.util.List<Store> findAllByCompany_CompanyId(Integer companyId);
 }

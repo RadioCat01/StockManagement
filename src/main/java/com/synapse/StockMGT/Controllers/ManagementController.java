@@ -7,6 +7,7 @@ import com.synapse.StockMGT.Services.InventoryService;
 import com.synapse.StockMGT.Services.ManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import java.util.logging.Logger;
 @RestController
 @RequestMapping("/mgt")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('COMPANY_ADMIN', 'STOCK_CLERK')")
 public class ManagementController {
     private final ManagementService managementService;
     private final CategoryRepo categoryRepo;
@@ -40,6 +42,7 @@ public class ManagementController {
     }
 
     @PostMapping("/createCategory")
+    @PreAuthorize("hasRole('COMPANY_ADMIN')")
     public ResponseEntity<?> createItem(@RequestBody String categoryName) {
         Map<String, String> response = new HashMap<>();
         response.put("Message", managementService.createCategory(categoryName));
@@ -48,6 +51,7 @@ public class ManagementController {
     }
 
     @PostMapping("/createBrand")
+    @PreAuthorize("hasRole('COMPANY_ADMIN')")
     public ResponseEntity<?> createBrand(@RequestBody BrandDTO brandDTO) {
         Map<String, String> response = new HashMap<>();
         response.put("Message", managementService.createBrand(brandDTO));

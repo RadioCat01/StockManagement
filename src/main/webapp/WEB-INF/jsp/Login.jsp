@@ -30,6 +30,9 @@
   <script src="${pageContext.request.contextPath}/JS/app.js" type="text/javascript"></script>
   <!-- END Custom CSS-->
   <%@include file="../jspf/globalHeader.jspf.jsp"%>
+  <script type="text/javascript">
+    var LOGIN_CONFIG = { loginType: '${loginType}' };
+  </script>
   <script src="${pageContext.request.contextPath}/JS/Controllers/AuthController.js" type="text/javascript"></script>
   <style>
     .head{
@@ -60,8 +63,9 @@
         <div class="col-md-4 col-10 box-shadow-2 p-0">
           <div class="card border-grey border-lighten-3 px-1 py-1 m-0">
             <div class="card-header border-0 head">
-              <div class="font-large-1  text-center">
-                Stock Management
+              <div class="font-large-1 text-center">
+                <h1>${loginTitle}</h1>
+                <p>Stock Management</p>
               </div>
             </div>
             <div class="card-content">
@@ -91,14 +95,15 @@
                   </div>
                 </form>
               </div>
-              <p class="card-subtitle line-on-side text-muted text-center font-small-3 mx-2 my-2 "><span>OR Sign Up Using</span></p>
-              <div class="text-center">
-                <a href="#" class="btn btn-social-icon round mr-1 mb-1 btn-facebook"><span class="ft-facebook"></span></a>
-                <a href="#" class="btn btn-social-icon round mr-1 mb-1 btn-twitter"><span class="ft-twitter"></span></a>
-                <a href="#" class="btn btn-social-icon round mr-1 mb-1 btn-instagram"><span class="ft-instagram"></span></a>
+              <div class="text-center mt-3" aria-label="Choose login type">
+                <p>Other login pages</p>
+                <a class="btn btn-outline-primary btn-sm mb-1"
+                   href="${pageContext.request.contextPath}/login/application-admin">Application Admin</a>
+                <a class="btn btn-outline-primary btn-sm mb-1"
+                   href="${pageContext.request.contextPath}/login/company-admin">Company Admin</a>
+                <a class="btn btn-outline-primary btn-sm mb-1"
+                   href="${pageContext.request.contextPath}/login/worker">Worker</a>
               </div>
-
-              <p class="card-subtitle text-muted text-right font-small-3 mx-2 my-1"><span>Don't have an account ? <a href="register.html" class="card-link">Sign Up</a></span></p>
             </div>
           </div>
         </div>

@@ -7,6 +7,9 @@ import com.synapse.StockMGT.DTOs.TransferReqDTO;
 import com.synapse.StockMGT.Models.*;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Store;
 import com.synapse.StockMGT.Repos.*;
+import com.synapse.StockMGT.User.AccessScopeService;
+import com.synapse.StockMGT.User.Roles;
+import com.synapse.StockMGT.User.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,14 +39,17 @@ public class InventoryService {
 
     private final TransferRepo transferRepo;
     private final ItemRepo itemRepo;
-    private final StoreRepo storeRepo;
     private final ItemHistoryRepo itemHistoryRepo;
     private final ItemInfoRepo itemInfoRepo;
+    private final AccessScopeService accessScope;
     private static final Random random = new Random();
 
     @Transactional(readOnly = true)
     public Page<InventoryDTO> getInventory(
             Integer storeId, int page, int size, String search, int sortColumn, String sortDirection) {
+        if (storeId != null) {
+            accessScope.requireStore(storeId);
+        }
         String sortExpression = INVENTORY_SORT_EXPRESSIONS[
                 Math.max(0, Math.min(sortColumn, INVENTORY_SORT_EXPRESSIONS.length - 1))];
         Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection)
@@ -52,23 +58,34 @@ public class InventoryService {
 
         return itemRepo.findInventory(
                 storeId,
+                accessScope.companyId(),
+                User.currentUser().hasRole(Roles.CASHIER)
+                        ? User.currentUser().getStoreFront().getStorefrontId()
+                        : null,
                 search.trim(),
                 PageRequest.of(page, size, JpaSort.unsafe(direction, sortExpression)));
     }
 
     @Transactional(readOnly = true)
     public long countInventory(Integer storeId) {
-        return itemRepo.countInventoryByStoreId(storeId);
+        return itemRepo.countInventoryByStoreId(
+                storeId,
+                accessScope.companyId(),
+                User.currentUser().hasRole(Roles.CASHIER)
+                        ? User.currentUser().getStoreFront().getStorefrontId()
+                        : null);
     }
 
     public List<Transfers> getTransfers() {
-        return transferRepo.findAll();
+        User user = User.currentUser();
+        return user.hasRole(Roles.PLATFORM_ADMIN)
+                ? transferRepo.findAll()
+                : transferRepo.findAllByCompany_CompanyId(accessScope.companyId());
     }
 
     @Transactional
     public String transferStock(TransferReqDTO transferReqDTO) {
-        Store store = storeRepo.findById(transferReqDTO.getTransferTo())
-                .orElseThrow(() -> new RuntimeException("Store not found"));
+        Store store = accessScope.requireStore(transferReqDTO.getTransferTo());
 
         StringBuilder sb = new StringBuilder();
         Store prevStore = null;
@@ -81,6 +98,7 @@ public class InventoryService {
             if(inventoryDTO.getStoreId() != store.getStoreId()) {
                 Item item = itemRepo.findById(inventoryDTO.getItemId())
                         .orElseThrow(() -> new RuntimeException("Item not found"));
+                accessScope.requireStore(item.getStore().getStoreId());
                 prevStore = item.getStore();
                 histories.add(ItemHistory.builder()
                                 .brand(inventoryDTO.getBrand())
@@ -88,6 +106,8 @@ public class InventoryService {
                                 .serialNo(item.getSerialNumber())
                                 .currentState(transferredToState)
                                 .lastUpdate(now)
+                                .company(store.getCompany())
+                                .subCompany(store.getSubCompany())
                                 .build());
 
                 item.setStore(store);
@@ -105,7 +125,9 @@ public class InventoryService {
         if (!itemsToSave.isEmpty()) {
             itemRepo.saveAll(itemsToSave);
         }
-        assert prevStore != null;
+        if (prevStore == null) {
+            throw new IllegalArgumentException("No stock is available to transfer.");
+        }
         transferRepo.save(Transfers.builder()
                         .transferNumber(generateTransferNumber())
                         .transferDate(LocalDate.now())
@@ -113,21 +135,36 @@ public class InventoryService {
                         .serials(sb.toString())
                         .transferFrom(prevStore.getSubCompany().getSubCompanyName())
                         .transferTo(store.getSubCompany().getSubCompanyName())
+                        .company(store.getCompany())
+                        .subCompany(store.getSubCompany())
                         .build());
         return "Done";
     }
 
     @Transactional
     public String bulkTransfer(BulkTransferDTO bulkTransferDTO) {
-        Store store = storeRepo.findById(bulkTransferDTO.getStoreId())
-                .orElseThrow(() -> new RuntimeException("Store not found"));
+        Store store = accessScope.requireStore(bulkTransferDTO.getStoreId());
         ItemInfo itemInfo =itemInfoRepo.findByItemCode(bulkTransferDTO.getItemCode())
                 .orElseThrow(() -> new RuntimeException("Item not found"));
+        if (itemInfo.getCompany() == null
+                || !accessScope.isCompanyVisible(itemInfo.getCompany().getCompanyId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "The selected item does not belong to your company.");
+        }
 
         List<Item> items = itemInfo.getItems().stream()
-                .filter(item -> item.getStore().getStoreId() != bulkTransferDTO.getStoreId())
+                .filter(item -> item.getStore() != null
+                        && !item.getStore().getStoreId().equals(bulkTransferDTO.getStoreId())
+                        && item.getStore().getCompany() != null
+                        && item.getStore().getCompany().getCompanyId().equals(store.getCompany().getCompanyId())
+                        && (!User.currentUser().hasRole(Roles.CASHIER)
+                        || item.getStore().getStoreFronts().stream().anyMatch(front ->
+                        front.getStorefrontId().equals(User.currentUser().getStoreFront().getStorefrontId()))))
                 .limit(bulkTransferDTO.getItemQuantity())
                 .toList();
+        if (items.size() != bulkTransferDTO.getItemQuantity()) {
+            throw new IllegalArgumentException("Not enough stock is available in your authorized stores.");
+        }
 
         StringBuilder sb = new StringBuilder();
         Store prevStore = null;
@@ -148,6 +185,8 @@ public class InventoryService {
                             .serialNo(item.getSerialNumber())
                             .currentState(transferredToState)
                             .lastUpdate(now)
+                            .company(store.getCompany())
+                            .subCompany(store.getSubCompany())
                             .build());
             sb.append(bulkTransferDTO.getBrand()).append(" ").append(bulkTransferDTO.getItemCode())
                     .append(" - ").append(item.getSerialNumber())
@@ -159,7 +198,9 @@ public class InventoryService {
         if (!itemsToSave.isEmpty()) {
             itemRepo.saveAll(itemsToSave);
         }
-        assert prevStore != null;
+        if (prevStore == null) {
+            throw new IllegalArgumentException("No stock is available to transfer.");
+        }
 
         transferRepo.save(Transfers.builder()
                 .transferNumber(generateTransferNumber())
@@ -168,6 +209,8 @@ public class InventoryService {
                 .serials(sb.toString())
                 .transferFrom(prevStore.getSubCompany().getSubCompanyName())
                 .transferTo(store.getSubCompany().getSubCompanyName())
+                .company(store.getCompany())
+                .subCompany(store.getSubCompany())
                 .build());
         return "Done";
     }
@@ -178,7 +221,12 @@ public class InventoryService {
     }
 
     public List<ItemHistoryResDTO> getItemHistory(String serialNumber) {
-        return itemHistoryRepo.findBySerialNo(serialNumber).stream().map(i -> ItemHistoryResDTO.builder()
+        User user = User.currentUser();
+        List<ItemHistory> history = user.hasRole(Roles.PLATFORM_ADMIN)
+                ? itemHistoryRepo.findBySerialNo(serialNumber)
+                : itemHistoryRepo.findAllBySerialNoAndCompany_CompanyId(
+                        serialNumber, accessScope.companyId());
+        return history.stream().map(i -> ItemHistoryResDTO.builder()
                 .brand(i.getBrand())
                 .itemCode(i.getItemCode())
                 .serialNo(i.getSerialNo())

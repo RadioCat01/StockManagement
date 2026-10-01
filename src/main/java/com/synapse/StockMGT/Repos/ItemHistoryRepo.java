@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface ItemHistoryRepo extends JpaRepository<ItemHistory, Integer> {
     List<ItemHistory> findBySerialNo(String serialNo);
+    List<ItemHistory> findAllBySerialNoAndCompany_CompanyId(String serialNo, Integer companyId);
 }

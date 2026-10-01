@@ -5,6 +5,7 @@ import com.synapse.StockMGT.Models.Invoice;
 import com.synapse.StockMGT.Services.InvoiceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import java.util.logging.Logger;
 @RestController
 @RequestMapping("/invoiceCont")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('COMPANY_ADMIN')")
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
@@ -32,6 +34,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/invoiceByNumber")
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN', 'COMPANY_ADMIN', 'STOCK_CLERK')")
     public ResponseEntity<?> getInvoiceByNumber(@RequestParam String number) {
         invoiceLogger.info("Sales Controller: getInvoiceByNumber");
         return ResponseEntity.ok(invoiceService.getInvoiceByNumber(number));

@@ -5,6 +5,7 @@ import com.synapse.StockMGT.DTOs.FormDTOs.DataReqDTO;
 import com.synapse.StockMGT.Services.CompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,11 +13,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/company")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('PLATFORM_ADMIN', 'COMPANY_ADMIN')")
 public class CompanyController {
 
     private final CompanyService companyService;
 
     @PostMapping("/company")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> createCompany(@RequestBody DataReqDTO dto) {
         return ResponseEntity.ok(companyService.createCompany(dto.getFormData()));
     }
@@ -58,6 +61,7 @@ public class CompanyController {
 
 
     @GetMapping("/company")
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN', 'COMPANY_ADMIN')")
     public ResponseEntity<?> getAllCompanies() {
         return ResponseEntity.ok(companyService.getAllCompanies());
     }

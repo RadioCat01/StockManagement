@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface SupplierGRNRepo  extends JpaRepository<SupplierGRN, Integer> {
     List<SupplierGRN> findBySupplierId(int supplierId);
+    List<SupplierGRN> findBySupplierIdAndCompany_CompanyId(int supplierId, Integer companyId);
     List<SupplierGRN> findByItemCode(String name);
 }

@@ -1,5 +1,6 @@
 package com.synapse.StockMGT.Models.CompanyHierarchy;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.synapse.StockMGT.CustomFields.*;
 import com.synapse.StockMGT.Models.*;
 import com.synapse.StockMGT.User.User;
@@ -23,6 +24,7 @@ public class Company {
     private String companyName;
 
     @OneToMany(mappedBy = "company")
+    @JsonIgnore
     private List<User> users;
 
     @OneToMany(mappedBy = "company")

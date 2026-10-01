@@ -1,6 +1,5 @@
 package com.synapse.StockMGT.Models.CompanyHierarchy;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.synapse.StockMGT.CustomFields.StoreFront_Data;
 import com.synapse.StockMGT.CustomFields.StoreFront_Fields;
@@ -48,6 +47,7 @@ public class StoreFront{
     @JsonIgnore
     private SubCompany subCompany;
 
-    @OneToOne(mappedBy = "storeFront")
-    private User user;
+    @OneToMany(mappedBy = "storeFront")
+    @JsonIgnore
+    private List<User> users;
 }

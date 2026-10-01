@@ -1,11 +1,14 @@
 package com.synapse.StockMGT.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.synapse.StockMGT.Models.CompanyHierarchy.Company;
 import com.synapse.StockMGT.Models.CompanyHierarchy.StoreFront;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.persistence.*;
 import java.security.Principal;
@@ -26,11 +29,12 @@ public class User implements UserDetails, Principal{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(unique = true, nullable = false)
     private String username;
     private String address;
     private String phoneNumber;
 
-    @Column(unique = true)
+    @JsonIgnore
     private String password;
 
     private boolean accountNonExpired;
@@ -42,7 +46,7 @@ public class User implements UserDetails, Principal{
     @JoinColumn(name = "companyId")
     private Company company;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "storeFrontId")
     private StoreFront storeFront;
 
@@ -56,8 +60,24 @@ public class User implements UserDetails, Principal{
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles.stream().map(r -> new SimpleGrantedAuthority(r.getRoleName().toString()))
+        if (roles == null) {
+            return List.of();
+        }
+        return this.roles.stream().map(r -> new SimpleGrantedAuthority("ROLE_" + r.getRoleName().name()))
                 .collect(Collectors.toList());
+    }
+
+    public boolean hasRole(Roles role) {
+        return roles != null && roles.stream().anyMatch(assignment -> assignment.getRoleName() == role);
+    }
+
+    public static User currentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof User)) {
+            throw new IllegalStateException("An authenticated user is required");
+        }
+        return (User) authentication.getPrincipal();
     }
 
     @Override
@@ -66,6 +86,7 @@ public class User implements UserDetails, Principal{
     }
 
     @Override
+    @JsonIgnore
     public String getPassword() {
         return password;
     }

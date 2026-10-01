@@ -5,6 +5,9 @@ import com.synapse.StockMGT.DTOs.FormDTOs.GenericEntityDTO;
 import com.synapse.StockMGT.Enums.CounterType;
 import com.synapse.StockMGT.Models.CompanyHierarchy.*;
 import com.synapse.StockMGT.Repos.*;
+import com.synapse.StockMGT.User.AccessScopeService;
+import com.synapse.StockMGT.User.Roles;
+import com.synapse.StockMGT.User.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -41,8 +44,13 @@ public class CompanyService {
     private final POS_DataRepo posDataRepo;
     private final Drawer_FieldRepo drawer_FieldsRepo;
     private final Drawer_DataRepo drawer_DataRepo;
+    private final AccessScopeService accessScope;
 
     public Company createCompany(Map<String, Object> formData) {
+        if (!User.currentUser().hasRole(Roles.PLATFORM_ADMIN)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Only platform administrators can create companies.");
+        }
         Company company = companyRepo.save(Company.builder()
                 .companyName((String) formData.get("companyName"))
                 .build());
@@ -66,6 +74,7 @@ public class CompanyService {
     public SubCompany createSubCompany(Map<String, Object> formData) {
         Company company = companyRepo.findById(Integer.parseInt((String) formData.get("companyId")))
                 .orElseThrow(() -> new RuntimeException("Company Not Found"));
+        accessScope.requireCompany(company.getCompanyId());
 
         SubCompany subCompany = subCompanyRepo.save(SubCompany.builder()
                 .subCompanyName((String) formData.get("subCompanyName"))
@@ -103,8 +112,10 @@ public class CompanyService {
     public Store createStore(Map<String, Object> formData) {
         Company company = companyRepo.findById(Integer.parseInt(formData.get("companyId").toString()))
                 .orElseThrow(() -> new RuntimeException("Company Not Found"));
+        accessScope.requireCompany(company.getCompanyId());
         SubCompany subCompany = subCompanyRepo.findById(Integer.parseInt(formData.get("subCompanyId").toString()))
                 .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
+        requireSubCompany(company, subCompany);
 
         Store store = Store.builder()
                 .storeName((String) formData.get("storeName"))
@@ -146,8 +157,10 @@ public class CompanyService {
     public StoreFront createStoreFront(Map<String, Object> formData) {
         Company company = companyRepo.findById(Integer.parseInt(formData.get("companyId").toString()))
                 .orElseThrow(() -> new RuntimeException("Company Not Found"));
+        accessScope.requireCompany(company.getCompanyId());
         SubCompany subCompany = subCompanyRepo.findById(Integer.parseInt(formData.get("subCompanyId").toString()))
                 .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
+        requireSubCompany(company, subCompany);
 
         List<String> storeIdStrings = (List<String>) formData.get("storeIds");
         List<Integer> storeIds = storeIdStrings.stream()
@@ -157,6 +170,13 @@ public class CompanyService {
         List<Store> stores = storeIds.stream()
                 .map(id -> storeRepo.findById(id).orElseThrow(() -> new RuntimeException("Store Not Found")))
                 .toList();
+        if (stores.stream().anyMatch(store -> store.getCompany() == null
+                || !store.getCompany().getCompanyId().equals(company.getCompanyId())
+                || store.getSubCompany() == null
+                || !store.getSubCompany().getSubCompanyId().equals(subCompany.getSubCompanyId()))) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "All selected stores must belong to the selected company and sub-company.");
+        }
 
         StoreFront storeFront = StoreFront.builder()
                 .storeFrontName((String) formData.get("storeFrontName"))
@@ -211,13 +231,17 @@ public class CompanyService {
                 .orElseThrow(() -> new RuntimeException("Company Not Found"));
         SubCompany subCompany = subCompanyRepo.findById(Integer.parseInt(formData.get("subCompanyId").toString()))
                 .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
+        accessScope.requireCompany(company.getCompanyId());
+        requireSubCompany(company, subCompany);
+        StoreFront selectedStoreFront = accessScope.requireStoreFront(
+                storeFront.getStorefrontId(), company.getCompanyId());
 
         Counter counter = Counter.builder()
                 .counterType(CounterType.valueOf((String) formData.get("counterType")))
                 .counterName((String) formData.get("counterName"))
                 .company(company)
                 .subCompany(subCompany)
-                .storeFront(storeFront)
+                .storeFront(selectedStoreFront)
                 .build();
 
         counterRepo.save(counter);
@@ -230,7 +254,7 @@ public class CompanyService {
                     switch (field.getFieldName()) {
                         case "companyId" -> fieldValue = company.getCompanyName();
                         case "subCompanyId" -> fieldValue = subCompany.getSubCompanyName();
-                        case "storeFrontId" -> fieldValue = storeFront.getStoreFrontName();
+                        case "storeFrontId" -> fieldValue = selectedStoreFront.getStoreFrontName();
 //                        case "storeId" -> fieldValue =
                         default -> fieldValue = String.valueOf(formData.get(field.getFieldName()));
                     }
@@ -258,6 +282,9 @@ public class CompanyService {
                 .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
         Counter counter = counterRepo.findById(Integer.parseInt(formData.get("counterId").toString()))
                 .orElseThrow(() -> new RuntimeException("Counter Not Found"));
+        accessScope.requireCompany(company.getCompanyId());
+        requireSubCompany(company, subCompany);
+        requireSameCompany(company, counter.getCompany());
 
         Scanner scanner = Scanner.builder()
                 .scannerName((String) formData.get("scannerName"))
@@ -306,6 +333,9 @@ public class CompanyService {
                 .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
         Counter counter = counterRepo.findById(Integer.parseInt(formData.get("counterId").toString()))
                 .orElseThrow(() -> new RuntimeException("Counter Not Found"));
+        accessScope.requireCompany(company.getCompanyId());
+        requireSubCompany(company, subCompany);
+        requireSameCompany(company, counter.getCompany());
 
         PosTerminal terminal = PosTerminal.builder()
                 .posTerminalName((String) formData.get("posTerminalName"))
@@ -354,6 +384,9 @@ public class CompanyService {
                 .orElseThrow(() -> new RuntimeException("SubCompany Not Found"));
         Counter counter = counterRepo.findById(Integer.parseInt(formData.get("counterId").toString()))
                 .orElseThrow(() -> new RuntimeException("Counter Not Found"));
+        accessScope.requireCompany(company.getCompanyId());
+        requireSubCompany(company, subCompany);
+        requireSameCompany(company, counter.getCompany());
 
         CashDrawer cashDrawer = CashDrawer.builder()
                 .drawerName((String) formData.get("drawerName"))
@@ -394,7 +427,9 @@ public class CompanyService {
 
 
     public List<GenericEntityDTO> getAllCompanies() {
-        return companyRepo.findAll().stream().map(company -> {
+        return companyRepo.findAll().stream()
+                .filter(company -> accessScope.isCompanyVisible(company.getCompanyId()))
+                .map(company -> {
             Map<String, String> customFields = company.getData().stream()
                     .filter(d -> d.getField() != null && !"companyName".equals(d.getField().getFieldName()))
                     .collect(Collectors.toMap(
@@ -413,7 +448,10 @@ public class CompanyService {
     }
 
     public List<GenericEntityDTO> getAllSubCompanies() {
-        return subCompanyRepo.findAll().stream().map(sub -> {
+        return subCompanyRepo.findAll().stream()
+                .filter(sub -> sub.getCompany() != null
+                        && accessScope.isCompanyVisible(sub.getCompany().getCompanyId()))
+                .map(sub -> {
             Map<String, String> customFields = sub.getData().stream()
                     .filter(d -> d.getField() != null && !"subCompanyName".equals(d.getField().getFieldName()))
                     .collect(Collectors.toMap(
@@ -432,7 +470,10 @@ public class CompanyService {
     }
 
     public List<GenericEntityDTO> getAllStores() {
-        return storeRepo.findAll().stream().map(store -> {
+        return storeRepo.findAll().stream()
+                .filter(store -> store.getCompany() != null
+                        && accessScope.isCompanyVisible(store.getCompany().getCompanyId()))
+                .map(store -> {
             Map<String, String> customFields = store.getData().stream()
                     .filter(d -> d.getField() != null && !"storeName".equals(d.getField().getFieldName()))
                     .collect(Collectors.toMap(
@@ -451,7 +492,10 @@ public class CompanyService {
     }
 
     public List<GenericEntityDTO> getAllStoreFronts() {
-        return storeFrontRepo.findAll().stream().map(front -> {
+        return storeFrontRepo.findAll().stream()
+                .filter(front -> front.getCompany() != null
+                        && accessScope.isCompanyVisible(front.getCompany().getCompanyId()))
+                .map(front -> {
             Map<String, String> customFields = front.getData().stream()
                     .filter(d -> d.getField() != null && !"storeFrontName".equals(d.getField().getFieldName()))
                     .collect(Collectors.toMap(
@@ -461,6 +505,7 @@ public class CompanyService {
 
             return GenericEntityDTO.builder()
                     .entityId(String.valueOf(front.getStorefrontId()))
+                    .storefrontId(front.getStorefrontId())
                     .companyId(front.getCompany().getCompanyId())
                     .subcompanyId(front.getSubCompany().getSubCompanyId())
                     .storeId(front.getStore().stream().map(Store::getStoreId).toList())
@@ -472,7 +517,10 @@ public class CompanyService {
 
 
     public List<GenericEntityDTO> getAllCounters() {
-        return counterRepo.findAll().stream().map(counter -> {
+        return counterRepo.findAll().stream()
+                .filter(counter -> counter.getCompany() != null
+                        && accessScope.isCompanyVisible(counter.getCompany().getCompanyId()))
+                .map(counter -> {
             Map<String, String> customFields = counter.getData().stream()
                     .filter(d -> d.getField() != null && !"counterName".equals(d.getField().getFieldName()))
                     .collect(Collectors.toMap(
@@ -493,7 +541,10 @@ public class CompanyService {
 
 
     public List<GenericEntityDTO> getAllScanners() {
-        return scannerRepo.findAll().stream().map(scanner -> {
+        return scannerRepo.findAll().stream()
+                .filter(scanner -> scanner.getCompany() != null
+                        && accessScope.isCompanyVisible(scanner.getCompany().getCompanyId()))
+                .map(scanner -> {
             Map<String, String> customFields = scanner.getData().stream()
                     .filter(d -> d.getField() != null && !"scannerName".equals(d.getField().getFieldName()))
                     .collect(Collectors.toMap(
@@ -514,7 +565,10 @@ public class CompanyService {
 
 
     public List<GenericEntityDTO> getAllPOSTerminals() {
-        return posTerminalRepo.findAll().stream().map(pos -> {
+        return posTerminalRepo.findAll().stream()
+                .filter(pos -> pos.getCompany() != null
+                        && accessScope.isCompanyVisible(pos.getCompany().getCompanyId()))
+                .map(pos -> {
             Map<String, String> customFields = pos.getData().stream()
                     .filter(d -> d.getField() != null && !"posTerminalName".equals(d.getField().getFieldName()))
                     .collect(Collectors.toMap(
@@ -535,7 +589,10 @@ public class CompanyService {
 
 
     public List<GenericEntityDTO> getAllDrawers() {
-        return cashDrawerRepo.findAll().stream().map(drawer -> {
+        return cashDrawerRepo.findAll().stream()
+                .filter(drawer -> drawer.getCompany() != null
+                        && accessScope.isCompanyVisible(drawer.getCompany().getCompanyId()))
+                .map(drawer -> {
             Map<String, String> customFields = drawer.getData().stream()
                     .filter(d -> d.getField() != null && !"drawerName".equals(d.getField().getFieldName()))
                     .collect(Collectors.toMap(
@@ -552,5 +609,20 @@ public class CompanyService {
                     .customFields(customFields)
                     .build();
         }).toList();
+    }
+
+    private void requireSubCompany(Company company, SubCompany subCompany) {
+        if (subCompany.getCompany() == null
+                || !subCompany.getCompany().getCompanyId().equals(company.getCompanyId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "The selected sub-company does not belong to the selected company.");
+        }
+    }
+
+    private void requireSameCompany(Company company, Company relatedCompany) {
+        if (relatedCompany == null || !relatedCompany.getCompanyId().equals(company.getCompanyId())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "The selected resource does not belong to the selected company.");
+        }
     }
 }

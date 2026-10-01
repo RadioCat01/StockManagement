@@ -8,6 +8,8 @@ import com.synapse.StockMGT.Models.CompanyHierarchy.Store;
 import com.synapse.StockMGT.Models.CompanyHierarchy.StoreFront;
 import com.synapse.StockMGT.Repos.*;
 import com.synapse.StockMGT.User.User;
+import com.synapse.StockMGT.User.Roles;
+import com.synapse.StockMGT.User.AccessScopeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,14 +32,36 @@ public class SalesService {
     private final ItemHistoryRepo itemHistoryRepo;
     private final StoreRepo storeRepo;
     private final StoreFrontRepo storeFrontRepo;
+    private final AccessScopeService accessScope;
 
     @Transactional(readOnly = true)
     public List<SaleItemDTO> getItems() {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<SaleItemDTO> salesItems = new ArrayList<>();
-        int storeFrontID = currentUser.getStoreFront().getStorefrontId();
-        StoreFront storeFront = storeFrontRepo.findById(storeFrontID).orElseThrow(()->new RuntimeException("Store front not found"));
-        List<Item> items = storeFront.getStore()
+        List<Store> stores;
+        if (currentUser.hasRole(Roles.CASHIER)) {
+            StoreFront assignedStoreFront = currentUser.getStoreFront();
+            if (assignedStoreFront == null) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "The signed-in cashier is not assigned to a store front.");
+            }
+            StoreFront storeFront = storeFrontRepo.findById(assignedStoreFront.getStorefrontId())
+                    .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException(
+                            "The signed-in cashier's store front no longer exists."));
+            if (storeFront == null || storeFront.getCompany() == null
+                    || currentUser.getCompany() == null
+                    || !storeFront.getCompany().getCompanyId().equals(currentUser.getCompany().getCompanyId())) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "The signed-in cashier is not assigned to a valid store front.");
+            }
+            stores = storeFront.getStore();
+        } else if (currentUser.hasRole(Roles.PLATFORM_ADMIN)) {
+            stores = storeRepo.findAll();
+        } else {
+            Integer companyId = accessScope.companyId();
+            stores = storeRepo.findAllByCompany_CompanyId(companyId);
+        }
+        List<Item> items = stores
                 .stream().flatMap(store -> store.getItems().stream())
                 .toList();
 
@@ -70,26 +94,46 @@ public class SalesService {
 
 
 
+    @Transactional(readOnly = true)
     public List<Customers> getCustomers() {
-        return customerRepo.findAll();
+        User currentUser = User.currentUser();
+        if (currentUser.hasRole(Roles.PLATFORM_ADMIN)) {
+            return customerRepo.findAll();
+        }
+        return customerRepo.findAllByCompany_CompanyId(accessScope.companyId());
     }
 
     @Transactional
     public int createSale(SoldDTO sale) {
+        User actor = User.currentUser();
         Sales newSale = new Sales();
         List<SoldProducts> soldProducts = new ArrayList<>();
         double subTotal = 0.0;
+        List<Store> saleStores = new ArrayList<>();
+        Integer saleCompanyId = actor.hasRole(Roles.PLATFORM_ADMIN)
+                ? null
+                : accessScope.companyId();
 
-        Optional<Customers> cus = customerRepo.findByPhone(sale.getCustomerPhone());
+        Optional<Customers> cus = actor.hasRole(Roles.PLATFORM_ADMIN)
+                ? customerRepo.findByPhone(sale.getCustomerPhone())
+                : customerRepo.findByPhoneAndCompany_CompanyId(
+                        sale.getCustomerPhone(), accessScope.companyId());
         Customers thisCustomer= null;
         if (cus.isPresent()) {
             thisCustomer = cus.get();
+            if (!actor.hasRole(Roles.PLATFORM_ADMIN)
+                    && (thisCustomer.getCompany() == null
+                    || !thisCustomer.getCompany().getCompanyId().equals(accessScope.companyId()))) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "The selected customer belongs to another company.");
+            }
             newSale.setCustomer(cus.get());
         }else {
             Customers newCustomer = Customers.builder()
                     .name(sale.getCustomerName())
                     .phone(sale.getCustomerPhone())
                     .address(sale.getCustomerAddress())
+                    .company(actor.hasRole(Roles.PLATFORM_ADMIN) ? null : actor.getCompany())
                     .build();
             if(sale.getCustomFields()!=null){
                 for (CustomFields_customer customer : sale.getCustomFields()){
@@ -112,24 +156,58 @@ public class SalesService {
         for (SoldProductDTO product : sale.getProducts()){
             SupplierGRN supplierGRN = supplierGRNRepo.findById(product.getSupplierGRNID())
                     .orElseThrow(() -> new RuntimeException("GRN not found"));
-
+            if (product.getSelectedQuantity() <= 0) {
+                throw new IllegalArgumentException("Sale quantities must be positive.");
+            }
             List<SoldItem> soldItems = new ArrayList<>();
-            Store store = storeRepo.findById(product.getStoreId())
-                    .orElseThrow(() -> new RuntimeException("Store not found"));
+            Store store = accessScope.requireStore(product.getStoreId());
+            if (!actor.hasRole(Roles.PLATFORM_ADMIN)
+                    && (supplierGRN.getCompany() == null
+                    || !supplierGRN.getCompany().getCompanyId().equals(accessScope.companyId()))) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "The selected stock does not belong to your company.");
+            }
+            if (saleCompanyId == null) {
+                saleCompanyId = store.getCompany().getCompanyId();
+            } else if (!saleCompanyId.equals(store.getCompany().getCompanyId())) {
+                throw new IllegalArgumentException("A sale cannot contain stock from multiple companies.");
+            }
+            List<Item> availableItems = supplierGRN.getItems().stream()
+                    .filter(item -> item.getStore() != null
+                            && item.getStore().getStoreId().equals(store.getStoreId()))
+                    .limit(product.getSelectedQuantity())
+                    .toList();
+            if (availableItems.size() != product.getSelectedQuantity()) {
+                throw new IllegalArgumentException(
+                        "The selected GRN does not have enough unsold stock at this location.");
+            }
+            if (thisCustomer.getCompany() == null) {
+                thisCustomer.setCompany(store.getCompany());
+            }
+            if (thisCustomer.getSubCompany() == null) {
+                thisCustomer.setSubCompany(store.getSubCompany());
+            }
+            newSale.setCompany(store.getCompany());
+            newSale.setSubCompany(store.getSubCompany());
+            saleStores.add(store);
 
-            for(int q=0; q <= product.getSelectedQuantity()-1; q++){
+            for(Item item : availableItems){
                 soldItems.add(SoldItem.builder()
                                 .itemCode(product.getItemCode())
-                                .serialNumber(supplierGRN.getItems().get(q).getSerialNumber())
+                                .serialNumber(item.getSerialNumber())
                                 .supplierGRNId(supplierGRN.getSupplierGRNId())
+                                .company(store.getCompany())
+                                .subCompany(store.getSubCompany())
                                 .build());
-                int itemID = supplierGRN.getItems().get(q).getItemId();
+                int itemID = item.getItemId();
                 histories.add(ItemHistory.builder()
                                 .brand(supplierGRN.getBrandName())
                                 .itemCode(product.getItemCode())
-                                .serialNo(supplierGRN.getItems().get(q).getSerialNumber())
+                                .serialNo(item.getSerialNumber())
                                 .currentState("Sold to: "+thisCustomer.getName()+"\n"+thisCustomer.getPhone())
                                 .lastUpdate(LocalDate.now())
+                                .company(store.getCompany())
+                                .subCompany(store.getSubCompany())
                                 .build());
                 itemIdsToDelete.add(itemID);
             }
@@ -138,6 +216,8 @@ public class SalesService {
                      .soldItems(soldItems)
                      .supplierGRNId(supplierGRN.getSupplierGRNId())
                      .store(store)
+                     .company(store.getCompany())
+                     .subCompany(store.getSubCompany())
                      .build());
 
             if(sale.getRetail().equals(true)) {
@@ -153,6 +233,9 @@ public class SalesService {
         if (!itemIdsToDelete.isEmpty()) {
             itemRepo.deleteAllByIdInBatch(itemIdsToDelete);
         }
+        if (saleCompanyId == null) {
+            throw new IllegalArgumentException("A sale must include at least one product.");
+        }
         newSale.setSaleType(sale.getRetail() ? "Retail" : "Dealer");
         newSale.setSoldProducts(soldProducts);
         newSale.setPoReference(sale.getPoReference());
@@ -160,8 +243,7 @@ public class SalesService {
         newSale.setInvoiceNumber(invoiceNumber);
         Sales newSaleObj = salesRepo.save(newSale);
 
-
-        for(ServiceChargeDTO service : sale.getServiceCharges()){
+        for (ServiceChargeDTO service : sale.getServiceCharges()) {
             subTotal += service.getChargeAmount();
         }
 
@@ -179,6 +261,8 @@ public class SalesService {
                         .sales(newSale)
                         .poDate(LocalDate.now())
                         .poReference(sale.getPoReference())
+                        .company(saleStores.get(0).getCompany())
+                        .subCompany(saleStores.get(0).getSubCompany())
                         .build();
 
         for (ServiceChargeDTO service : sale.getServiceCharges()) {
@@ -186,6 +270,8 @@ public class SalesService {
                             .serviceDescription(service.getDescription())
                             .chargeAmount(service.getChargeAmount())
                             .build());
+            invoice.getServices().get(invoice.getServices().size() - 1).setCompany(invoice.getCompany());
+            invoice.getServices().get(invoice.getServices().size() - 1).setSubCompany(invoice.getSubCompany());
 
         }
         return invoiceRepo.save(invoice).getInvoiceId();
@@ -193,7 +279,10 @@ public class SalesService {
 
     public List<?> getSaleReport() {
         List<SalesReportDTO> reports = new ArrayList<>();
-        List<Sales> sales = salesRepo.findAll();
+        User currentUser = User.currentUser();
+        List<Sales> sales = currentUser.hasRole(Roles.PLATFORM_ADMIN)
+                ? salesRepo.findAll()
+                : salesRepo.findAllByCompany_CompanyId(accessScope.companyId());
 
         List<Integer> grnIds = sales.stream()
                 .flatMap(s -> s.getSoldProducts().stream())

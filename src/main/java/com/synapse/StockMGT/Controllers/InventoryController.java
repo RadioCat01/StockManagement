@@ -6,6 +6,7 @@ import com.synapse.StockMGT.DTOs.TransferReqDTO;
 import com.synapse.StockMGT.Services.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.logging.Logger;
 @RestController
 @RequestMapping("inventoryCont")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('COMPANY_ADMIN', 'STOCK_CLERK')")
 public class InventoryController {
     private final InventoryService inventoryService;
     Logger controllerLogger = Logger.getLogger("AUDIT");

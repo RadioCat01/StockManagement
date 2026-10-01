@@ -4,6 +4,7 @@ import com.synapse.StockMGT.DTOs.FormDTOs.FieldDTO;
 import com.synapse.StockMGT.Services.FormService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/forms")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('PLATFORM_ADMIN', 'COMPANY_ADMIN')")
 public class FormController {
     private final FormService formService;
 
@@ -20,6 +22,7 @@ public class FormController {
     }
 
     @PostMapping("/company")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addCompanyFields(@RequestBody FieldDTO field){
         return ResponseEntity.ok(formService.addCompanyField(field));
     }
@@ -30,6 +33,7 @@ public class FormController {
     }
 
     @PostMapping("/subcompany")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addSubCompanyFields(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addSubCompanyField(field));
     }
@@ -40,6 +44,7 @@ public class FormController {
     }
 
     @PostMapping("/store")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addStoreFields(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addStoreField(field));
     }
@@ -50,6 +55,7 @@ public class FormController {
     }
 
     @PostMapping("/storefront")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addStorefrontFields(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addStorefrontField(field));
     }
@@ -60,6 +66,7 @@ public class FormController {
     }
 
     @PostMapping("/counter")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addCounterFields(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addCounterField(field));
     }
@@ -70,6 +77,7 @@ public class FormController {
     }
 
     @PostMapping("/scanner")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addScannerFields(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addScannerField(field));
     }
@@ -80,6 +88,7 @@ public class FormController {
     }
 
     @PostMapping("/posterminal")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addPOSTerminalFields(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addPOSTerminalField(field));
     }
@@ -90,6 +99,7 @@ public class FormController {
     }
 
     @PostMapping("/drawer")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addCashDrawerFields(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addCashDrawerField(field));
     }
@@ -100,6 +110,7 @@ public class FormController {
     }
 
     @PostMapping("/customer")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addCustomerFields(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addCustomerField(field));
     }
@@ -110,6 +121,7 @@ public class FormController {
     }
 
     @PostMapping("/supplier")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addSupplierFields(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addSupplierField(field));
     }
@@ -120,6 +132,7 @@ public class FormController {
     }
 
     @PostMapping("/category")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addCategoryFields(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addCategoryField(field));
     }
@@ -130,6 +143,7 @@ public class FormController {
     }
 
     @PostMapping("/brand")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addBrandField(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addBrandField(field));
     }
@@ -140,6 +154,7 @@ public class FormController {
     }
 
     @PostMapping("/iteminfo")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addItemInfoField(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addItemInfoField(field));
     }
@@ -150,6 +165,7 @@ public class FormController {
     }
 
     @PostMapping("/item")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addItemField(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addItemField(field));
     }
@@ -160,6 +176,7 @@ public class FormController {
     }
 
     @PostMapping("/jobnotes")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<?> addJobNotesField(@RequestBody FieldDTO field) {
         return ResponseEntity.ok(formService.addJobNotesField(field));
     }
