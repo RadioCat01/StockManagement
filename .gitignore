@@ -34,4 +34,4 @@ build/
 logs/audit.log
 
 ### env ###
-.env
+.env.env
