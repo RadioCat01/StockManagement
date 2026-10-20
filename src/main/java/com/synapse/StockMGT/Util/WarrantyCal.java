@@ -23,7 +23,7 @@ public class WarrantyCal {
         if (grn == null || grn.getSellerWarranty() == null || invoice == null || invoice.getInvoiceDate() == null) {
             throw new IllegalArgumentException("GRN, grnDate and warranty must not be null");
         }
-
+//sample changes to test CI
         Period warrantyPeriod = parseWarrantyPeriod(grn.getSellerWarranty());
         return invoice.getInvoiceDate().plus(warrantyPeriod);
     }
