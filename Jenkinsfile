@@ -14,18 +14,17 @@ pipeline {
     APP_URL    = 'http://localhost:8080/'
   }
 
-  stages {
-    stage('Build & Test') {
-      steps {
+  stage('Build & Test') {
+    steps {
+      withCredentials([string(credentialsId: 'stock-db-url', variable: 'DB_URL')]) {
         sh '''
+          echo "Building branch: $GIT_BRANCH  commit: $GIT_COMMIT"
           if [ -x ./mvnw ]; then ./mvnw -B clean package
           else mvn -B clean package; fi
         '''
       }
-      post {
-        always { junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml' }
-      }
     }
+  }
 
     stage('Archive') {
       steps {
@@ -33,22 +32,26 @@ pipeline {
       }
     }
 
-    stage('Deploy') {
-      when { expression { env.GIT_BRANCH == 'origin/19thJune' } }
-      steps {
-        sh '''
-          set -e
-          NEW_WAR=$(ls target/*.war | grep -v '\\.original$' | head -n 1)
-          echo "Deploying $NEW_WAR"
+   stage('Deploy') {
+     when { expression { env.GIT_BRANCH in ['origin/19thJune', '19thJune'] } }
+     steps {
+       withCredentials([string(credentialsId: 'stock-db-url', variable: 'DB_URL')]) {
+         sh '''
+           set -e
+           NEW_WAR=$(ls target/*.war | grep -v '\\.original$' | head -n 1)
 
-          # Back up the current version for rollback
-          [ -f "$DEPLOY_WAR" ] && cp -p "$DEPLOY_WAR" "$DEPLOY_WAR.bak"
+           [ -f "$DEPLOY_WAR" ] && cp -p "$DEPLOY_WAR" "$DEPLOY_WAR.bak"
+           cp "$NEW_WAR" "$DEPLOY_WAR"
 
-          cp "$NEW_WAR" "$DEPLOY_WAR"
-          sudo systemctl restart $SERVICE
-        '''
-      }
-    }
+           # Write runtime config (read by spring.config.import)
+           umask 077
+           printf 'DB_URL=%s\\n' "$DB_URL" > /home/ubuntu/.env
+
+           sudo systemctl restart $SERVICE
+         '''
+       }
+     }
+   }
 
     stage('Health Check') {
       when { expression { env.GIT_BRANCH == 'origin/19thJune' } }
