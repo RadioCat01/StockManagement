@@ -21,7 +21,7 @@ pipeline {
     stage('Agent Info') {
       steps {
         sh '''
-          echo "Node:      $NODE_NAME"
+          echo "NODE:      $NODE_NAME"
           echo "Host:      $(hostname)"
           echo "User:      $(whoami)"
           echo "Workspace: $WORKSPACE"
